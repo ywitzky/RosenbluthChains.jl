@@ -1,3 +1,5 @@
+export SimData
+
 mutable struct SimData{T<:Real, I<:Integer}
     FolderPath::String
     NBeads::I

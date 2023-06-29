@@ -2,14 +2,18 @@ abstract type AbstractBondParam end
 
 abstract type AbstractBondAngleParam end
 
+abstract type AbstractTosionAngleParam end
+
 abstract type AbstractSelfAvoidanceParameters end
 
-struct SimulationParameters{T<:Real, I<:Integer}s
+abstract type AbstractMeasurement end
+
+
+struct SimulationParameters{T<:Real, I<:Integer}
     BondParam::AbstractBondParam
     BondAngleParam::AbstractBondAngleParam
     TorsionAngleParam::AbstractTosionAngleParam
     SAWParam::AbstractSelfAvoidanceParameters
-    SimulationParameters( Bond::FixedBondParameters{T},Angle::Union{GaussLpBondAngles{T},FixedBondAngles{T}})  where {T<:Real} = new{T,Int64}(Bond,Angle, IdealChain())
 end
 
 @inline function SetTrialRadius(data::SimData,param::SimulationParameters)
@@ -23,6 +27,7 @@ end
 @inline function SetTrialTorsionAngle(data::SimData,param::SimulationParameters)
     SetTrialTorsionAngle(data, param.TorsionAngleParam)
 end
+
 
 @inline function GetUnboundInteractions(data::SimData,param::SimulationParameters)
     GetUnboundInteractions(data, param.SAWParam)
@@ -40,4 +45,12 @@ function GetTrialBoltzmannWeight(data::SimData,param::SimulationParameters)
 
 function ChooseTrialPosition(data::SimData,param::SimulationParameters)
     ChooseTrialPosition(data, param.SAWParam)
- end
+end
+
+function InitMeasurement(data::SimData, param::SimulationParameters) end 
+
+function MeasureAfterChainGrowth(data::SimData, param::SimulationParameters, Measurement::AbstractMeasurement) end
+
+function MeasureAfterBatch(data::SimData, param::SimulationParameters,Measurement::AbstractMeasurement) end
+
+function SaveMeasurements(data::SimData, param::SimulationParameters,Measurement::SimulationParameters) end

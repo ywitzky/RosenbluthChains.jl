@@ -3,15 +3,16 @@ module RosenbluthChains
 using StaticArrays
 using Mmap
 
+include("./VectorTypes.jl")
+include("./SimulationData.jl")
+
 include("./AbstractTypes.jl")
 include("./HelperFuncs.jl")
 include("./Measurements.jl")
 include("./MMapOutput.jl")
-include("./Models.jl")
-include("./RandomNumberFuns.jl")
+include("./RandomNumberFuncs.jl")
 include("./RosenbluthMethod.jl")
-include("./SimulatinData.jl")
 include("./SpecificModels.jl")
-include("./VectorTypes.jl")
+
 
 end # module RosenbluthChains

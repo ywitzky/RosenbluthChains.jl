@@ -1,3 +1,5 @@
+export SimulationParameters , InitMeasurement, MeasureAfterChainGrowthMeasureAfterBatch, SaveMeasurements, AbstractMeasurement
+
 abstract type AbstractBondParam end
 
 abstract type AbstractBondAngleParam end
@@ -47,10 +49,10 @@ function ChooseTrialPosition(data::SimData,param::SimulationParameters)
     ChooseTrialPosition(data, param.SAWParam)
 end
 
-function InitMeasurement(data::SimData, param::SimulationParameters) end 
+function InitMeasurement(data::SimData, param::SimulationParameters, _::AbstractMeasurement) end 
 
 function MeasureAfterChainGrowth(data::SimData, param::SimulationParameters, Measurement::AbstractMeasurement) end
 
 function MeasureAfterBatch(data::SimData, param::SimulationParameters,Measurement::AbstractMeasurement) end
 
-function SaveMeasurements(data::SimData, param::SimulationParameters,Measurement::SimulationParameters) end
+function SaveMeasurements(data::SimData, param::SimulationParameters,Measurement::AbstractMeasurement) end

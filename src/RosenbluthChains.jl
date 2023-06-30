@@ -5,7 +5,6 @@ using Mmap
 
 include("./VectorTypes.jl")
 include("./SimulationData.jl")
-
 include("./AbstractTypes.jl")
 include("./HelperFuncs.jl")
 include("./Measurements.jl")

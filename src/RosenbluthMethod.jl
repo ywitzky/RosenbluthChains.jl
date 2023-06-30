@@ -1,12 +1,12 @@
-function RunSim(data::SimData, param::SimulationParameters)
+function RunSim(data::SimData, param::SimulationParameters, TmpMeas::AbstractMeasurement)
 ### Init
 #LA_Obj=InitLammpsAnalysisScript(data, param)
 InitSimParam(data, param)
 #Measurements = InitMeasurementStorage(data, param)
-Measurements = InitMeasurement(data, param)
+Measurements = InitMeasurement(data, param, TmpMeas)
 
 ### Computational Part
-mainLoop(data, param, Measurements, LA_Obj)
+mainLoop(data, param, Measurements)
 
 ### Write Out
 # MeasurementsToPickle(data, Measurements)
@@ -15,8 +15,8 @@ return Measurements
 end
 
 function mainLoop( data::SimData, param::SimulationParameters, Measurement::AbstractMeasurement)#    ::Dict{String, Array{T}}, LA_Obj::LA.SimData{T2, N}) where {T<:Real, N<:Integer, T2<:Real}
-    for I in 0:data.NumberOfBatches-1
-        for i in 1:data.BatchSize
+    for data.batch_id in 0:data.NumberOfBatches-1
+        for data.id_in_batch in 1:data.BatchSize
             ResetSim(data, param)
             SetFirstThreeBeads(data, param)
             ComputeBeadsIteratively(data,param)

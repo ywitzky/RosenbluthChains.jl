@@ -10,6 +10,8 @@ mutable struct SimData{T<:Real, I<:Integer}
     IType::I
     id::I ### current bead 
     tid::I ### trial id
+    id_in_batch::I
+    batch_id::I
     RosenbluthWeight::T
     xyz::Vector{Vector3{T}}
     

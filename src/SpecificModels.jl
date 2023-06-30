@@ -1,4 +1,6 @@
-using Distributios 
+using Distributions 
+
+
 struct RandTorsion <: AbstractTosionAngleParam end
 
 struct FixedBondParameters{T<: Real} <: AbstractBondParam
@@ -6,9 +8,22 @@ struct FixedBondParameters{T<: Real} <: AbstractBondParam
     BondLength::T
 end 
 
+struct FixedBondAngles{T<:Real} <: AbstractBondAngleParam
+    BondAngles::Vector{T} 
+ end
+
 struct GaussLpBondAngles{T<:Real} <: AbstractBondAngleParam
     PersistenceDist::Normal{T}
     GaussLpBondAngles(Dist::Normal{T}) where {T<:Real} = new{T}(Dist)
+end
+
+struct IdealChain <: AbstractSelfAvoidanceParameters end
+
+struct SAWParameters{T<:Real, I<:Integer} <: AbstractSelfAvoidanceParameters
+    ### Self avoiding Parameters
+    σ_Ex::T
+    ϵ_Ex::T
+    offset_Ex::T
 end
 
 @inline function SetTrialTorsionAngle(data::SimData, param::RandTorsion)
@@ -27,18 +42,6 @@ end
     data.trial_angle.= lpToAngle.(rand(param.PersistenceDist, data.NTrials))
 end
 
-
-@inline function SetTrialRadius(data::SimData, param::FixedBondParameters) 
-    ### is set once in set up and doesnt change afterwards
-end
-
-@inline function SetTrialBondAngle(data::SimData,param::FixedBondAngles)
-    fill!(data.trial_angle, param.BondAngles[data.id-2])
-end
-
-@inline function SetTrialBondAngle(data::SimData,param::GaussLpBondAngles)
-    data.trial_angle.= lpToAngle.(rand(param.PersistenceDist, data.NTrials))
-end
 
 
 

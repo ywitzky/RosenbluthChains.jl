@@ -33,8 +33,8 @@ mutable struct SimData{T<:Real, I<:Integer}
 
     ### Constructor
     SimData(FolderPath::String, type::T, NBeads::I, NTrials::I, BatchSize::I, NumberOfBatches::I) where {T<: Real, I<: Integer} =  
-    new{T,I}(FolderPath, NBeads, NTrials, BatchSize, NumberOfBatches, 1,1, 1,-1, 0.0, Vector{Vector3{T}}(NBeads) ,
-    zeros(T, NTrials),  zeros(T, NTrials), Vector{Vector3{T}}(NTrials), 
+    new{T,I}(FolderPath, NBeads, NTrials, BatchSize, NumberOfBatches, 1,1, 1,-1,0,0, 0.0,Vector{Vector3{T}}(NBeads) ,
+    zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials), Vector{Vector3{T}}(NTrials), 
     Matrix3{T}(), Vector3{T}(0,0,0),Vector3{T}(0,0,0), Vector3{T}(0,0,0) , Vector3{T}(0,0,0), Vector3{T}(0,0,0), Vector3{T}(0,0,0) )
 
 end

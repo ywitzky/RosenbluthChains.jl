@@ -1,3 +1,5 @@
+
+export RandTorsion, FixedBondParameters, FixedBondAngles, GaussLpBondAngles, IdealChain, SAWParameters, SimulationParameters
 using Distributions 
 
 

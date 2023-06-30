@@ -1,5 +1,6 @@
-function RunSim(data::SimData, param::SimulationParameters, TmpMeas::AbstractMeasurement)
-### Init
+export RunSim
+
+function RunSim(data::SimData, param::SimulationParameters, TmpMeas::AbstractMeasurement) 
 #LA_Obj=InitLammpsAnalysisScript(data, param)
 InitSimParam(data, param)
 #Measurements = InitMeasurementStorage(data, param)

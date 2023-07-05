@@ -58,6 +58,11 @@ function ChooseTrialPosition(data::SimData,param::IdealChain) ### Assume no exte
     data.tid  = rand(1:data.NTrials)
 end
 
+function GetTrialBoltzmannWeight(data::SimData,param::FixedBondLength) end
+
+function GetTrialBoltzmannWeight(data::SimData,param::FixedBondAngles) end
+
+function GetTrialBoltzmannWeight(data::SimData,param::FixedTorsionAngles) end
 
 
 

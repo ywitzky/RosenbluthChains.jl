@@ -12,9 +12,14 @@ mutable struct SimData{T<:Real, I<:Integer}
     tid::I ### trial id
     id_in_batch::I
     batch_id::I
-    RosenbluthWeight::T
     xyz::Vector{Vector3{T}}
-    
+
+    ### Rosebluth Weight stuff
+    LogRosenbluthWeight::T   ### Log of weight for the whole chain at current step;
+    RosenbluthWeight::T   ### weight for the whole chain only updated at the end;
+    BoltzmannFaktor::Vector{T}
+    LogBoltzmannFaktor::Vector{T}
+
     ### Data for Trial positions
     trial_radius::Vector{T} ### radius for the trial positions
     trial_angle::Vector{T} ### trial angle for bonds
@@ -33,7 +38,8 @@ mutable struct SimData{T<:Real, I<:Integer}
 
     ### Constructor
     SimData(FolderPath::String, type::T, NBeads::I, NTrials::I, BatchSize::I, NumberOfBatches::I) where {T<: Real, I<: Integer} =  
-    new{T,I}(FolderPath, NBeads, NTrials, BatchSize, NumberOfBatches, 1,1, 1,-1,0,0, 0.0,Vector{Vector3{T}}(NBeads) ,
+    new{T,I}(FolderPath, NBeads, NTrials, BatchSize, NumberOfBatches, 1,1, 1,-1,0,0, Vector{Vector3{T}}(NBeads) ,
+    0.0,0.0,zeros(NTrials), zeros(NTrials)
     zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials), Vector{Vector3{T}}(NTrials), 
     Matrix3{T}(), Vector3{T}(0,0,0),Vector3{T}(0,0,0), Vector3{T}(0,0,0) , Vector3{T}(0,0,0), Vector3{T}(0,0,0), Vector3{T}(0,0,0) )
 

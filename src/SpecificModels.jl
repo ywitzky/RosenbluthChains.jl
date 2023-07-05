@@ -1,9 +1,9 @@
 
-export RandTorsion, FixedBondParameters, FixedBondAngles, GaussLpBondAngles, IdealChain, SAWParameters, SimulationParameters
+export RandTorsion, FixedBondParameters, FixedBondAngles, FixedTorsionAngles, GaussLpBondAngles, IdealChain, SAWParameters, SimulationParameters
 using Distributions 
 
 
-struct RandTorsion <: AbstractTosionAngleParam end
+struct RandTorsion <: AbstractTorsionAngleParam end
 
 struct FixedBondParameters{T<: Real} <: AbstractBondParam
     ### Bond Length
@@ -12,7 +12,13 @@ end
 
 struct FixedBondAngles{T<:Real} <: AbstractBondAngleParam
     BondAngles::Vector{T} 
+    FixedBondAngles(BondAngles::Vector{T}) where {T<:Real} = new{T}(BondAngles)
  end
+
+struct FixedTorsionAngles{T<:Real} <: AbstractTorsionAngleParam
+    TorsionAngles::Vector{T} 
+    FixedTorsionAngles(TorsionAngles::Vector{T}) where {T<:Real} = new{T}(TorsionAngles)
+end
 
 struct GaussLpBondAngles{T<:Real} <: AbstractBondAngleParam
     PersistenceDist::Normal{T}
@@ -29,7 +35,11 @@ struct SAWParameters{T<:Real, I<:Integer} <: AbstractSelfAvoidanceParameters
 end
 
 @inline function SetTrialTorsionAngle(data::SimData, param::RandTorsion)
-    data.trial_torsion_angle .= _rand(eltype(data.TType)(2*π), data.NTrials)
+    data.trial_torsion_angle .= rand(eltype(data.TType), data.NTrials)*2*π
+end
+
+@inline function SetTrialTorsionAngle(data::SimData, param::FixedTorsionAngles)
+    fill!(data.trial_torsion_angle, param.TorsionAngles[data.id-2])
 end
 
 @inline function SetTrialRadius(data::SimData, param::FixedBondParameters) 
@@ -41,9 +51,12 @@ end
 end
 
 @inline function SetTrialBondAngle(data::SimData,param::GaussLpBondAngles)
-    data.trial_angle.= lpToAngle.(rand(param.PersistenceDist, data.NTrials))
+    data.trial_angle.= lpToRigidAngle.(rand(param.PersistenceDist, data.NTrials))
 end
 
+function ChooseTrialPosition(data::SimData,param::IdealChain) ### Assume no external potential
+    data.tid  = rand(1:data.NTrials)
+end
 
 
 
@@ -56,10 +69,15 @@ end
 
 @inline function InitSimParam(data::SimData,param::FixedBondAngles ) end
 
+@inline function InitSimParam(data::SimData,param::FixedTorsionAngles ) end
+
 @inline function InitSimParam(data::SimData,param::SAWParameters ) end
 
 @inline function InitSimParam(data::SimData,param::IdealChain ) end
 
+@inline function InitSimParam(data::SimData,param::RandTorsion ) end
 
 
 SimulationParameters( Bond::FixedBondParameters{T},Angle::Union{GaussLpBondAngles{T},FixedBondAngles{T}})  where {T<:Real} = SimulationParameters{T,Int64}(Bond,Angle,RandTorsion(),IdealChain())
+
+SimulationParameters( Bond::FixedBondParameters{T},Angle::Union{GaussLpBondAngles{T},FixedBondAngles{T}},  Torsion ::AbstractTorsionAngleParam)  where {T<:Real} = SimulationParameters{T,Int64}(Bond,Angle,Torsion,IdealChain())

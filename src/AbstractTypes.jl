@@ -4,7 +4,7 @@ abstract type AbstractBondParam end
 
 abstract type AbstractBondAngleParam end
 
-abstract type AbstractTosionAngleParam end
+abstract type AbstractTorsionAngleParam end
 
 abstract type AbstractSelfAvoidanceParameters end
 
@@ -14,7 +14,7 @@ abstract type AbstractMeasurement end
 struct SimulationParameters{T<:Real, I<:Integer}
     BondParam::AbstractBondParam
     BondAngleParam::AbstractBondAngleParam
-    TorsionAngleParam::AbstractTosionAngleParam
+    TorsionAngleParam::AbstractTorsionAngleParam
     SAWParam::AbstractSelfAvoidanceParameters
 end
 

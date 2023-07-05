@@ -1,18 +1,15 @@
 export RunSim
 
 function RunSim(data::SimData, param::SimulationParameters, TmpMeas::AbstractMeasurement) 
-#LA_Obj=InitLammpsAnalysisScript(data, param)
-InitSimParam(data, param)
-#Measurements = InitMeasurementStorage(data, param)
-Measurements = InitMeasurement(data, param, TmpMeas)
+    InitSimParam(data, param)
+    Measurements = InitMeasurement(data, param, TmpMeas)
 
-### Computational Part
-mainLoop(data, param, Measurements)
+    ### Computational Part
+    mainLoop(data, param, Measurements)
 
-### Write Out
-# MeasurementsToPickle(data, Measurements)
-SaveMeasurements(data, param, Measurements)
-return Measurements
+    ### Write Out
+    SaveMeasurements(data, param, Measurements)
+    return Measurements
 end
 
 function mainLoop( data::SimData, param::SimulationParameters, Measurement::AbstractMeasurement)#    ::Dict{String, Array{T}}, LA_Obj::LA.SimData{T2, N}) where {T<:Real, N<:Integer, T2<:Real}
@@ -31,26 +28,51 @@ end
 
 function ComputeTrialPositions(data::SimData, param::SimulationParameters)
     for n in 1:data.NTrials
-        CalcRotationMatrix(data.crossproduct,data.trial_angle[n] , data, param)
+        #=CalcRotationMatrix(data.crossproduct,data.trial_angle[n], data, param)
         *(data.RotationMatrix,data.current , data.tmp2 )
-        
-        CalcRotationMatrix(data.current ,trial_torsion_angle[n], data, param )
-        *(data.RotationMatrix,data.tmp2, data.new_vec)
+
+        CalcRotationMatrix(data.current ,π/2.0+data.trial_torsion_angle[n], data, param )
+        *(data.RotationMatrix,data.tmp2.-cos(data.trial_angle[n]).*data.current, data.new_vec)
+        data.new_vec.+=(data.tmp2*data.current)=#
+
+        #data.tmp2 .= sin(data.trial_angle[n])*data.trial_radius[n]/norm(data.crossproduct).*data.crossproduct
+        #=CalcRotationMatrix(data.current ,data.trial_torsion_angle[n], data, param )
+        *(data.RotationMatrix,data.crossproduct, data.tmp3)
+
+        data.new_vec .= data.current*(cos(data.trial_angle[n])*data.trial_radius[n]/norm(data.current)).+data.tmp3*sin(data.trial_angle[n])*data.trial_radius[n]/norm(data.tmp3)
         
         length = norm(data.new_vec)
 
         data.tmp3 .= data.new_vec.* (data.trial_radius[n]/length)
 
         data.trial_positions[n][:] .= (data.xyz[data.id-1].+ data.tmp3)
+       
+        =#
+        #length = norm(data.new_vec)
+        #data.tmp3 .= data.new_vec.* (data.trial_radius[n]/length)
+
+        
+        u1=data.crossproduct/norm(data.crossproduct)
+        u2=Vector3{Float64}(0,0,0)
+        ×( data.current/norm(data.current),-1.0 .*u1, u2)
+
+        data.new_vec.=(
+            (u2.*cos(data.trial_torsion_angle[n])
+            .+ u1.*sin(data.trial_torsion_angle[n])).*sin(data.trial_angle[n])
+            .+data.current./norm(data.current).*cos(data.trial_angle[n]))          .*data.trial_radius[n]
+
+
+        data.trial_positions[n][:] .= (data.xyz[data.id-1].+ data.new_vec)
+        
+
+    
     end
 end
-
 
 function ResetSim(data::SimData, param::SimulationParameters)
     data.id=1
     data.tid=1
 end
-
 
 function SetFirstThreeBeads(data::SimData, param::SimulationParameters)
     ### First bead always at (0,0,0)
@@ -60,7 +82,7 @@ function SetFirstThreeBeads(data::SimData, param::SimulationParameters)
     
     ### place second bead somewhere in spherical coordinates
     φ = _rand(eltype(data.TType)(2*π) )
-    θ = acos(_rand(eltype(data.TType))*2.0-1.0)   ### azimuth angle to dont oversample the poles.
+    θ = acos(_rand_off(2.0, -1.0))   ### azimuth angle to dont oversample the poles.
     
     data.xyz[2][1]=  data.trial_radius[data.tid]*sin(θ)*cos(φ)
     data.xyz[2][2]=  data.trial_radius[data.tid]*sin(θ)*sin(φ)
@@ -84,12 +106,11 @@ function SetFirstThreeBeads(data::SimData, param::SimulationParameters)
     data.xyz[3] .= data.trial_positions[data.tid]
 
     data.tmp1 .= data.xyz[3].-data.xyz[2]
-    ×(data.xyz[1]-data.xyz[2],data.tmp1,data.crossproduct)
+    ×(data.xyz[2]-data.xyz[1],data.tmp1,data.crossproduct)
     data.current .= data.tmp1
 
     data.id+=1
 end
-
 
 function ComputeBeadsIteratively(data::SimData, param::SimulationParameters)
     while(data.id<=data.NBeads)
@@ -102,13 +123,14 @@ function ComputeBeadsIteratively(data::SimData, param::SimulationParameters)
 
         ChooseTrialPosition(data, param)
         
+
         data.xyz[data.id] .= data.trial_positions[data.tid]
         
         data.tmp1 .= data.xyz[data.id].-data.xyz[data.id-1]
-        ×( data.xyz[data.id-2]-data.xyz[data.id-1], data.tmp1,data.crossproduct)
+        ×( data.xyz[data.id-1]-data.xyz[data.id-2], data.tmp1,data.crossproduct)
         data.current .= data.tmp1
-
         data.id+=1
+
     end
 end
 

@@ -41,12 +41,28 @@ end
     end
 end
 
+### functions only compute the Log of the boltzmann faktor and finale evaluation of the exponent is done together
 function GetTrialBoltzmannWeight(data::SimData,param::SimulationParameters)
-    #  printstyled("No BoltzmannWeights implemented yet.\n" ; color=:red)
-  end
+    fill!(data.LogBoltzmannFaktor, 0.0)
+    GetTrialBoltzmannWeight(data, getfield(param, field)) for field in fieldnames(typeof(param))
+    data.BoltzmannFaktor @.= exp(data.LogBoltzmannFaktor)
+    nothing
+end
+
+function GetTrialBoltzmannWeight(data::SimData,param::AbstractBondParam) nothing end
+
+function GetTrialBoltzmannWeight(data::SimData,param::AbstractBondAngleParam) nothing end
+
+function GetTrialBoltzmannWeight(data::SimData,param::AbstractTorsionAngleParam) nothing end
+
+function GetTrialBoltzmannWeight(data::SimData,param::AbstractSelfAvoidanceParameters) nothing end
+
 
 function ChooseTrialPosition(data::SimData,param::SimulationParameters)
-    ChooseTrialPosition(data, param.SAWParam)
+    data.tmp1 .= cumsum(data.BoltzmannFaktor)
+    data.tmp2 @. = rand(eltype(data.tmp1))*data.tmp1[end]< data.tmp1
+    data.tid = findfirst(data.tmp2) 
+    data.LogRosenbluthWeight+= data.LogBoltzmannFaktor[data.tid]
 end
 
 function InitMeasurement(data::SimData, param::SimulationParameters, _::AbstractMeasurement) end 

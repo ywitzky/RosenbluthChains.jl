@@ -2,8 +2,9 @@ using Test, RosenbluthChains
 mkpath("./tmp/")
 
 include("./NoMeasurement.jl")
-include("./SpecificModels_Test.jl")
-#println("Code so great, no test implemented yet.") 
+#include("./SpecificModels_Test.jl")
+#include("./BoltzmannFaktor_Test.jl")
+include("./Cosine_BondAngles_Test.jl")
 
 
 rm("./tmp/")

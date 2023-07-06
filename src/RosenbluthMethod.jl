@@ -1,4 +1,4 @@
-export RunSim
+export RunSim, getRosenbluthWeigth
 
 function RunSim(data::SimData, param::SimulationParameters, TmpMeas::AbstractMeasurement) 
     InitSimParam(data, param)
@@ -69,9 +69,15 @@ function ComputeTrialPositions(data::SimData, param::SimulationParameters)
     end
 end
 
+function getRosenbluthWeigth(data::SimData, param::SimulationParameters)
+    return data.RosenbluthWeight = exp(data.LogRosenbluthWeight)
+end
+
 function ResetSim(data::SimData, param::SimulationParameters)
     data.id=1
     data.tid=1
+    data.RosenbluthWeight=1.0
+    data.LogRosenbluthWeight=0.0
 end
 
 function SetFirstThreeBeads(data::SimData, param::SimulationParameters)
@@ -157,3 +163,4 @@ function CalcRotationMatrix(out_vec::Vector3{T},angle::T, data::SimData, param::
     data.RotationMatrix[8]=  data.tmp1[3]*data.tmp1[2]*f+data.tmp1[1]*s
     data.RotationMatrix[9]=c+data.tmp1[3]*data.tmp1[3]*f
 end
+

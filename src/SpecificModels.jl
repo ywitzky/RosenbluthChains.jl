@@ -58,7 +58,7 @@ function ChooseTrialPosition(data::SimData,param::IdealChain) ### Assume no exte
     data.tid  = rand(1:data.NTrials)
 end
 
-function GetTrialBoltzmannWeight(data::SimData,param::FixedBondLength) end
+function GetTrialBoltzmannWeight(data::SimData,param::FixedBondParameters) end
 
 function GetTrialBoltzmannWeight(data::SimData,param::FixedBondAngles) end
 
@@ -83,6 +83,8 @@ end
 @inline function InitSimParam(data::SimData,param::RandTorsion ) end
 
 
+
+
 SimulationParameters( Bond::FixedBondParameters{T},Angle::Union{GaussLpBondAngles{T},FixedBondAngles{T}})  where {T<:Real} = SimulationParameters{T,Int64}(Bond,Angle,RandTorsion(),IdealChain())
 
-SimulationParameters( Bond::FixedBondParameters{T},Angle::Union{GaussLpBondAngles{T},FixedBondAngles{T}},  Torsion ::AbstractTorsionAngleParam)  where {T<:Real} = SimulationParameters{T,Int64}(Bond,Angle,Torsion,IdealChain())
+SimulationParameters( Bond::FixedBondParameters{T},Angle::Union{GaussLpBondAngles{T},FixedBondAngles{T}, },  Torsion ::AbstractTorsionAngleParam)  where {T<:Real} = SimulationParameters{T,Int64}(Bond,Angle,Torsion,IdealChain())

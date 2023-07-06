@@ -13,5 +13,7 @@ include("./RandomNumberFuncs.jl")
 include("./RosenbluthMethod.jl")
 include("./SpecificModels.jl")
 
+include("./Models/Cosine_BondAngels.jl")
+
 
 end # module RosenbluthChains

@@ -1,4 +1,4 @@
-export SimulationParameters , InitMeasurement, MeasureAfterChainGrowthMeasureAfterBatch, SaveMeasurements, AbstractMeasurement
+export SimulationParameters , InitMeasurement, MeasureAfterChainGrowthMeasureAfterBatch, SaveMeasurements, AbstractMeasurement, ChooseTrialPosition
 
 abstract type AbstractBondParam end
 
@@ -44,8 +44,10 @@ end
 ### functions only compute the Log of the boltzmann faktor and finale evaluation of the exponent is done together
 function GetTrialBoltzmannWeight(data::SimData,param::SimulationParameters)
     fill!(data.LogBoltzmannFaktor, 0.0)
-    GetTrialBoltzmannWeight(data, getfield(param, field)) for field in fieldnames(typeof(param))
-    data.BoltzmannFaktor @.= exp(data.LogBoltzmannFaktor)
+    for field in fieldnames(typeof(param))
+        GetTrialBoltzmannWeight(data, getfield(param, field)) 
+    end
+    data.BoltzmannFaktor .= @. exp(data.LogBoltzmannFaktor)
     nothing
 end
 
@@ -59,10 +61,11 @@ function GetTrialBoltzmannWeight(data::SimData,param::AbstractSelfAvoidanceParam
 
 
 function ChooseTrialPosition(data::SimData,param::SimulationParameters)
-    data.tmp1 .= cumsum(data.BoltzmannFaktor)
-    data.tmp2 @. = rand(eltype(data.tmp1))*data.tmp1[end]< data.tmp1
-    data.tid = findfirst(data.tmp2) 
+    data.tmp4 .= cumsum(data.BoltzmannFaktor)
+    data.btmp .=  (rand(eltype(data.tmp1))*data.tmp4[end]).< data.tmp4
+    data.tid = findfirst(data.btmp) 
     data.LogRosenbluthWeight+= data.LogBoltzmannFaktor[data.tid]
+    nothing
 end
 
 function InitMeasurement(data::SimData, param::SimulationParameters, _::AbstractMeasurement) end 
@@ -72,3 +75,6 @@ function MeasureAfterChainGrowth(data::SimData, param::SimulationParameters, Mea
 function MeasureAfterBatch(data::SimData, param::SimulationParameters,Measurement::AbstractMeasurement) end
 
 function SaveMeasurements(data::SimData, param::SimulationParameters,Measurement::AbstractMeasurement) end
+
+
+SimulationParameters( Bond::AbstractBondParam,Angle::AbstractBondAngleParam, Torsion::AbstractTorsionAngleParam, SAW::AbstractSelfAvoidanceParameters)  = SimulationParameters{Float64,Int64}(Bond,Angle,Torsion,SAW)

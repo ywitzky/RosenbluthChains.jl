@@ -49,7 +49,7 @@ end
 end
 
 function angle(a::Vector3{T},b::Vector3{T}) where {T<:Number} 
-   return acos(sum(a.*b)/(norm(a)*norm(b)))
+   return acos(sum(a.*b)/(norm(a)*norm(b)+10^-8)) ### removes 10^-10 accuracy problems for domaine of acos
 end
 
 function show(a::Matrix3{Any}) #where {T<:Real} 

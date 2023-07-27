@@ -8,16 +8,36 @@ function lpToCosAngle(lps, r0=3.8)
     return @. exp(-r0/lps)
 end
 
+function InvlpToCosAngle(InvLps, r0=3.8)
+    return @. exp(-r0*InvLps)
+end
+
 ### Solve Recursive for Value that solves Func(Value)=Target
 function solveRecursive(Target::T, Func::Function, Left::T, Right::T)where {T<:Real}
-    
     Middle = (Left+Right)/2.0
     #println("Left: $Left, Right: $Right, F(middle)=$(Func(Middle)), Target: $Target")
-    if abs(Func(Middle)-Target)<10^-10 return Middle end
-    if abs(Middle-Left)<10^-10 || abs(Middle-Right)<10^-10 return Middle end
+    if abs(Func(Middle)-Target)<10^-14 return Middle end
+    if abs(Middle-Left)<10^-14 || abs(Middle-Right)<10^-14 return Middle end
     if Func(Middle)<Target
-        return solveRecursive(Target, Func, Left, Middle)
-    else
         return solveRecursive(Target, Func, Middle, Right)
+    else
+        return solveRecursive(Target, Func, Left, Middle)
     end
+end
+
+@inline function CompTrigonometricTrialBondAngles(data::SimData)
+    data.cos_trial_angle .= cos.(data.trial_angle)
+    data.sin_trial_angle .= @. √(1-data.cos_trial_angle)
+    #@inbounds @simd for i = 1:length(data.trial_angle)         ### equally fast but requires SIMD package.
+    #    data.sin_trial_angle[i], data.cos_trial_angle[i] = sincos(data.trial_angle[i])
+    #end
+    nothing
+end
+@inline function CompTrigonometricTrialTorsionAngles(data::SimData)
+    data.cos_trial_torsion_angle .= cos.(data.trial_torsion_angle)
+    data.sin_trial_torsion_angle .= @. √(1-data.cos_trial_torsion_angle)
+    #@inbounds @simd for i = 1:length(data.trial_angle)
+    #    data.sin_trial_torsion_angle[i], data.cos_trial_torsion_angle[i] = sincos(data.trial_torsion_angle[i])
+    #end
+    nothing
 end

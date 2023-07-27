@@ -1,7 +1,6 @@
 module RosenbluthChains
 
-using StaticArrays
-using Mmap
+using StaticArrays, Mmap
 
 include("./VectorTypes.jl")
 include("./SimulationData.jl")

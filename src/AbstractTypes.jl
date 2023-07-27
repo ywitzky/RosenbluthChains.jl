@@ -18,6 +18,22 @@ struct SimulationParameters{T<:Real, I<:Integer}
     SAWParam::AbstractSelfAvoidanceParameters
 end
 
+### functions only compute the Log of the boltzmann faktor and finale evaluation of the exponent is done together
+function GetTrialBoltzmannWeight(data::SimData,param::SimulationParameters)
+        fill!(data.LogBoltzmannFaktor, 0.0)
+
+        ### TODO: Automatise so that nothing can be forgotten.
+        GetTrialBoltzmannWeight(data, param.BondParam)
+        GetTrialBoltzmannWeight(data, param.BondAngleParam)
+        GetTrialBoltzmannWeight(data, param.TorsionAngleParam)
+        GetTrialBoltzmannWeight(data, param.SAWParam)
+
+        #map(field-> GetTrialBoltzmannWeight(data,  getfield(param, field)), fieldnames(typeof(param)))
+        #data.BoltzmannFaktor .= @. exp(data.LogBoltzmannFaktor)
+        nothing
+end
+
+
 @inline function SetTrialRadius(data::SimData,param::SimulationParameters)
     SetTrialRadius(data, param.BondParam)
 end
@@ -41,15 +57,6 @@ end
     end
 end
 
-### functions only compute the Log of the boltzmann faktor and finale evaluation of the exponent is done together
-function GetTrialBoltzmannWeight(data::SimData,param::SimulationParameters)
-    fill!(data.LogBoltzmannFaktor, 0.0)
-    for field in fieldnames(typeof(param))
-        GetTrialBoltzmannWeight(data, getfield(param, field)) 
-    end
-    data.BoltzmannFaktor .= @. exp(data.LogBoltzmannFaktor)
-    nothing
-end
 
 function GetTrialBoltzmannWeight(data::SimData,param::AbstractBondParam) nothing end
 
@@ -61,8 +68,13 @@ function GetTrialBoltzmannWeight(data::SimData,param::AbstractSelfAvoidanceParam
 
 
 function ChooseTrialPosition(data::SimData,param::SimulationParameters)
-    data.tmp4 .= cumsum(data.BoltzmannFaktor)
-    data.btmp .=  (rand(eltype(data.tmp1))*data.tmp4[end]).< data.tmp4
+    GetTrialBoltzmannWeight(data,param)
+    #data.tmp4 .= cumsum(data.BoltzmannFaktor)
+    println("asdfg")
+    println(data.BoltzmannFaktor)
+    cumsum!(data.tmp4, data.BoltzmannFaktor)
+    println(data.tmp4)
+    data.btmp .=  (rand(eltype(data.tmp1))*data.tmp4[end]).<= data.tmp4
     data.tid = findfirst(data.btmp) 
     data.LogRosenbluthWeight+= data.LogBoltzmannFaktor[data.tid]
     nothing

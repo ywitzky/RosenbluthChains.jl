@@ -23,7 +23,11 @@ mutable struct SimData{T<:Real, I<:Integer}
     ### Data for Trial positions
     trial_radius::Vector{T} ### radius for the trial positions
     trial_angle::Vector{T} ### trial angle for bonds
+    sin_trial_angle::Vector{T} ### sine of trial angle for bonds
+    cos_trial_angle::Vector{T} ### cosine of trial angle for bonds
     trial_torsion_angle::Vector{T} ### trial torsion angles for bonds
+    sin_trial_torsion_angle::Vector{T} ### sine of trial torsion angles for bonds
+    cos_trial_torsion_angle::Vector{T} ### cosine of trial torsion angles for bonds
     trial_positions::Vector{Vector3{T}} ### trial positions for Rosenbluth
     
     
@@ -42,7 +46,7 @@ mutable struct SimData{T<:Real, I<:Integer}
     SimData(FolderPath::String, type::T, NBeads::I, NTrials::I, BatchSize::I, NumberOfBatches::I) where {T<: Real, I<: Integer} =  
     new{T,I}(FolderPath, NBeads, NTrials, BatchSize, NumberOfBatches, 1,1, 1,-1,0,0, Vector{Vector3{T}}(NBeads) ,
     0.0,0.0,zeros(NTrials), zeros(NTrials),
-    zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials), Vector{Vector3{T}}(NTrials), 
+    zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials), Vector{Vector3{T}}(NTrials), 
     Matrix3{T}(), Vector3{T}(0,0,0),Vector3{T}(0,0,0), Vector3{T}(0,0,0) , Vector3{T}(0,0,0), Vector3{T}(0,0,0), Vector3{T}(0,0,0) ,zeros(T, NTrials), zeros(Bool, NTrials) )
 
 end

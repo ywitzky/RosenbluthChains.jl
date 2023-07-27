@@ -35,7 +35,10 @@ struct SAWParameters{T<:Real, I<:Integer} <: AbstractSelfAvoidanceParameters
 end
 
 @inline function SetTrialTorsionAngle(data::SimData, param::RandTorsion)
-    data.trial_torsion_angle .= rand(eltype(data.TType), data.NTrials)*2*π
+    # data.trial_torsion_angle .= 
+   rand!(data.trial_torsion_angle, eltype(data.TType))
+   data.trial_torsion_angle.*= (eltype(data.TType))(2.0*π)
+   CompTrigonometricTrialTorsionAngles(data)
 end
 
 @inline function SetTrialTorsionAngle(data::SimData, param::FixedTorsionAngles)
@@ -48,6 +51,7 @@ end
 
 @inline function SetTrialBondAngle(data::SimData,param::FixedBondAngles)
     fill!(data.trial_angle, param.BondAngles[data.id-2])
+    CompTrigonometricTrialBondAngles(data)
 end
 
 @inline function SetTrialBondAngle(data::SimData,param::GaussLpBondAngles)
@@ -58,11 +62,11 @@ function ChooseTrialPosition(data::SimData,param::IdealChain) ### Assume no exte
     data.tid  = rand(1:data.NTrials)
 end
 
-function GetTrialBoltzmannWeight(data::SimData,param::FixedBondParameters) end
+@inline function GetTrialBoltzmannWeight(data::SimData,param::FixedBondParameters) nothing end
 
-function GetTrialBoltzmannWeight(data::SimData,param::FixedBondAngles) end
+@inline function GetTrialBoltzmannWeight(data::SimData,param::FixedBondAngles) nothing end
 
-function GetTrialBoltzmannWeight(data::SimData,param::FixedTorsionAngles) end
+@inline function GetTrialBoltzmannWeight(data::SimData,param::FixedTorsionAngles) nothing end
 
 
 

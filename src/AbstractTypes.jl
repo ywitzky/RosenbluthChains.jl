@@ -29,7 +29,7 @@ function GetTrialBoltzmannWeight(data::SimData,param::SimulationParameters)
         GetTrialBoltzmannWeight(data, param.SAWParam)
 
         #map(field-> GetTrialBoltzmannWeight(data,  getfield(param, field)), fieldnames(typeof(param)))
-        #data.BoltzmannFaktor .= @. exp(data.LogBoltzmannFaktor)
+        data.BoltzmannFaktor .= @. exp(data.LogBoltzmannFaktor)
         nothing
 end
 

@@ -5,7 +5,7 @@ mutable struct AMeasurement{T<:Number} <: AbstractMeasurement
     AvgCosBondAngle::Vector{T}
     AvgLp::Vector{T}
     OldWeight::T
-    AMeasurement(NBeads::I) where {I<:Integer} = new{Float32}(zero(Float32 ), zeros(Float32, NBeads-2), zeros(Float32, NBeads-2), zero(Float32)) #where {T::BigFloat}
+    AMeasurement(NBeads::I) where {I<:Integer} = new{BigFloat}(zero(BigFloat ), zeros(BigFloat, NBeads-2), zeros(BigFloat, NBeads-2), zero(BigFloat)) #where {T::BigFloat}
 end
 
 
@@ -24,16 +24,16 @@ end
 function RosenbluthChains.MeasureAfterChainGrowth(data::SimData, param::SimulationParameters, Measurement::AMeasurement) 
     rel = [data.xyz[i+1]-data.xyz[i] for i in 1:data.NBeads-1]
     angles=[angle( rel[i],rel[i+1]) for i in 1:data.NBeads-2]
-    Measurement.AvgCosBondAngle .+= getRosenbluthWeigth(data, param).*cos.(angles)#.*sin.(angles)
-    #print(data.id_in_batch,"  ")
-    #=
-    println(getRosenbluthWeigth(data, param))
+    #=if any(isnan.(cos.(angles)))
+    println("LogWeight in Measurement $(getRosenbluthWeigth(data, param))")
     println(data.xyz[1:10])
     println(rel[1:10])
-    println(angles[1:10])
-    =#
-    #println(data.id_in_batch,"  ", getRosenbluthWeigth(data, param))#,"   ", data.LogRosenbluthWeight, "   ",  param.BondAngleParam.K[data.tid]*(1+cos(data.trial_angle[data.tid])))
-    #println( getRosenbluthWeigth(data, param).* [angle( rel[i],rel[i+1]) for i in 1:N-2])
+    println("\n\n\n")
+    println(cos.(angles[1:10]))
+    end=#
+    Measurement.AvgCosBondAngle .+= getRosenbluthWeigth(data, param).*BigFloat.(cos.(angles))#.*sin.(angles)
+    #println("Weight : $(getRosenbluthWeigth(data, param)) , sum $(Measurement.AvgCosBondAngle[1])")
+
     Measurement.SumRosenbluthWeights += data.RosenbluthWeight #getRosenbluthWeigth(data, param)#
 end
     
@@ -45,7 +45,7 @@ N_cut=15
 N_Test=500_000
 φ=ones(N)*2#collect(range(0.01,π, N-2))
 r=3.8
-μ=100.0
+μ=10.0
 σ=1.0
 Data = SimData("./tmp/", 1.0, N, N_Trial      , N_Test, 1)
 KP = SimulationParameters( FixedBondParameters(r), Cosine_BondAngles(ones(Float64, N)*μ), FixedTorsionAngles(φ), IdealChain())
@@ -58,6 +58,7 @@ norm(x) = x./sum(x)
 
 N_Manual=10_000_000
 
+### @TODO Check lp values and force field
 
 @testset "Cosine_BondAngles & GaussianLp_Cosine_BondAngles " begin
     #println(RosenbluthChains.AvgCos(2.0))
@@ -79,9 +80,10 @@ N_Manual=10_000_000
     cos_x = hist.*cos.(Data.trial_angle).*sin.(Data.trial_angle)
     @test all(abs.(norm(cos_x) .-norm(f.(KP.BondAngleParam.K[1], Data.trial_angle))) .< 10^-3)
 
-    
-    AvgCos= Meas.AvgCosBondAngle[1:end]./Meas.SumRosenbluthWeights
+    println("Avg lp $(Meas.AvgLp[1:3]) , weight $(Meas.SumRosenbluthWeights)")
+    AvgCos= Meas.AvgLp[1:end]./Meas.SumRosenbluthWeights
     #sort!(AvgCos)
+    println("Avg reweight lp $(AvgCos[1:3])")
     println(Meas.SumRosenbluthWeights)
     println(RosenbluthChains.AvgCos(KP.BondAngleParam.K[1]))
     println(extrema(AvgCos))

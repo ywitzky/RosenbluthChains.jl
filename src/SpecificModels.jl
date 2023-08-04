@@ -43,6 +43,7 @@ end
 
 @inline function SetTrialTorsionAngle(data::SimData, param::FixedTorsionAngles)
     fill!(data.trial_torsion_angle, param.TorsionAngles[data.id-2])
+    CompTrigonometricTrialTorsionAngles(data)
 end
 
 @inline function SetTrialRadius(data::SimData, param::FixedBondParameters) 

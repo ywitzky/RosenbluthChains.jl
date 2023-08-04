@@ -59,6 +59,7 @@ norm(x) = x./sum(x)
 N_Manual=10_000_000
 
 ### @TODO Check lp values and force field
+### @TODO implement better angle sampling to have more equally distributed weights
 
 @testset "Cosine_BondAngles & GaussianLp_Cosine_BondAngles " begin
     #println(RosenbluthChains.AvgCos(2.0))

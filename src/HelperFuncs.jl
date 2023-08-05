@@ -27,17 +27,11 @@ end
 
 @inline function CompTrigonometricTrialBondAngles(data::SimData)
     data.cos_trial_angle .= cos.(data.trial_angle)
-    data.sin_trial_angle .= @. √(1-data.cos_trial_angle)
-    #@inbounds @simd for i = 1:length(data.trial_angle)         ### equally fast but requires SIMD package.
-    #    data.sin_trial_angle[i], data.cos_trial_angle[i] = sincos(data.trial_angle[i])
-    #end
+    data.sin_trial_angle .= @. √(1-data.cos_trial_angle^2)
     nothing
 end
 @inline function CompTrigonometricTrialTorsionAngles(data::SimData)
     data.cos_trial_torsion_angle .= cos.(data.trial_torsion_angle)
-    data.sin_trial_torsion_angle .= @. √(1-data.cos_trial_torsion_angle)
-    #@inbounds @simd for i = 1:length(data.trial_angle)
-    #    data.sin_trial_torsion_angle[i], data.cos_trial_torsion_angle[i] = sincos(data.trial_torsion_angle[i])
-    #end
+    data.sin_trial_torsion_angle .= @. √(1-data.cos_trial_torsion_angle^2)
     nothing
 end

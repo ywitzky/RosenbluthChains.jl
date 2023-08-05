@@ -69,11 +69,9 @@ function GetTrialBoltzmannWeight(data::SimData,param::AbstractSelfAvoidanceParam
 
 function ChooseTrialPosition(data::SimData,param::SimulationParameters)
     GetTrialBoltzmannWeight(data,param)
-    #data.tmp4 .= cumsum(data.BoltzmannFaktor)
-    println("asdfg")
-    println(data.BoltzmannFaktor)
+
     cumsum!(data.tmp4, data.BoltzmannFaktor)
-    println(data.tmp4)
+
     data.btmp .=  (rand(eltype(data.tmp1))*data.tmp4[end]).<= data.tmp4
     data.tid = findfirst(data.btmp) 
     data.LogRosenbluthWeight+= data.LogBoltzmannFaktor[data.tid]

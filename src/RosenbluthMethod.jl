@@ -9,6 +9,7 @@ function RunSim(data::SimData, param::SimulationParameters, TmpMeas::AbstractMea
 
     ### Write Out
     SaveMeasurements(data, param, Measurements)
+    println("Before Return cos:  $(Measurements.AvgCosBondAngle)")
     return Measurements
 end
 
@@ -70,7 +71,7 @@ function ComputeTrialPositions(data::SimData, param::SimulationParameters)
 end
 
 function getRosenbluthWeigth(data::SimData, param::SimulationParameters)
-    return data.RosenbluthWeight = exp(BigFloat(data.LogRosenbluthWeight))
+    return data.RosenbluthWeight = exp(data.LogRosenbluthWeight) # exp(BigFloat(data.LogRosenbluthWeight))
 end
 
 function ResetSim(data::SimData, param::SimulationParameters)
@@ -131,7 +132,14 @@ function ComputeBeadsIteratively(data::SimData, param::SimulationParameters)
         
 
         data.xyz[data.id] .= data.trial_positions[data.tid]
-        
+        if any(isnan.(data.xyz[data.id]))
+            println(data.tid)
+            println("trial angle $(data.trial_angle), cos $(data.cos_trial_angle) sin $(data.sin_trial_angle)")
+            println("trial  torsion angle $(data.trial_torsion_angle), cos $(data.cos_trial_torsion_angle) sin $(data.sin_trial_torsion_angle)")
+
+            println("pos ", data.trial_positions[data.tid])
+            break
+        end
         data.tmp1 .= data.xyz[data.id].-data.xyz[data.id-1]
         ×( data.xyz[data.id-1]-data.xyz[data.id-2], data.tmp1,data.crossproduct)
         data.current .= data.tmp1

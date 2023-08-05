@@ -9,7 +9,6 @@ function RunSim(data::SimData, param::SimulationParameters, TmpMeas::AbstractMea
 
     ### Write Out
     SaveMeasurements(data, param, Measurements)
-    println("Before Return cos:  $(Measurements.AvgCosBondAngle)")
     return Measurements
 end
 

@@ -1,3 +1,5 @@
+using ProgressBars
+
 export RunSim, getRosenbluthWeigth
 
 function RunSim(data::SimData, param::SimulationParameters, TmpMeas::AbstractMeasurement) 
@@ -13,8 +15,10 @@ function RunSim(data::SimData, param::SimulationParameters, TmpMeas::AbstractMea
 end
 
 function mainLoop( data::SimData, param::SimulationParameters, Measurement::AbstractMeasurement)#    ::Dict{String, Array{T}}, LA_Obj::LA.SimData{T2, N}) where {T<:Real, N<:Integer, T2<:Real}
+
     for data.batch_id in 0:data.NumberOfBatches-1
-        for data.id_in_batch in 1:data.BatchSize
+        println("Batch $(data.batch_id+1) /$(data.NumberOfBatches)")
+        for data.id_in_batch in ProgressBar(1:data.BatchSize, printing_delay=0.1)
             ResetSim(data, param)
             SetFirstThreeBeads(data, param)
             ComputeBeadsIteratively(data,param)
@@ -70,7 +74,7 @@ function ComputeTrialPositions(data::SimData, param::SimulationParameters)
 end
 
 function getRosenbluthWeigth(data::SimData, param::SimulationParameters)
-    return data.RosenbluthWeight = exp(data.LogRosenbluthWeight) # exp(BigFloat(data.LogRosenbluthWeight))
+    return data.RosenbluthWeight # = exp(data.LogRosenbluthWeight) # exp(BigFloat(data.LogRosenbluthWeight))
 end
 
 function ResetSim(data::SimData, param::SimulationParameters)
@@ -132,11 +136,11 @@ function ComputeBeadsIteratively(data::SimData, param::SimulationParameters)
 
         data.xyz[data.id] .= data.trial_positions[data.tid]
         if any(isnan.(data.xyz[data.id]))
-            println(data.tid)
-            println("trial angle $(data.trial_angle), cos $(data.cos_trial_angle) sin $(data.sin_trial_angle)")
-            println("trial  torsion angle $(data.trial_torsion_angle), cos $(data.cos_trial_torsion_angle) sin $(data.sin_trial_torsion_angle)")
+            println(data.tid, "  ", data.id)
+            println("trial angle $(data.trial_angle), \ncos $(data.cos_trial_angle) \nsin $(data.sin_trial_angle) \n test:$(data.sin_trial_angle.^2 .+ data.cos_trial_angle.^2)")
+            println("trial  torsion angle $(data.trial_torsion_angle), \ncos $(data.cos_trial_torsion_angle) \nsin $(data.sin_trial_torsion_angle)  \n test:$(data.sin_trial_torsion_angle.^2 .+ data.cos_trial_torsion_angle.^2)")
 
-            println("pos ", data.trial_positions[data.tid])
+            println("pos ", data.trial_positions)
             break
         end
         data.tmp1 .= data.xyz[data.id].-data.xyz[data.id-1]

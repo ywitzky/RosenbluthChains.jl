@@ -2,9 +2,10 @@ using Test, RosenbluthChains
 mkpath("./tmp/")
 
 include("./NoMeasurement.jl")
-#include("./SpecificModels_Test.jl")
-#include("./BoltzmannFaktor_Test.jl")
-include("./Cosine_BondAngles_Test.jl")
+include("./SpecificModels_Test.jl")
+include("./BoltzmannFaktor_Test.jl")
+include("./RandomNumberTest.jl")
+#include("./Cosine_BondAngles_Test.jl")
 
 
-rm("./tmp/")
+#rm("./tmp/")

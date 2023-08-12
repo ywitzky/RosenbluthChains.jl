@@ -1,24 +1,30 @@
-using Printf
+using Printf, Plots, StatsBase
+
+function ComputeKullbackLeiblerDivergence(P,Q)
+    return sum([p*log(p/q) for (p,q) in zip(P,Q) if p>0 ])# if q>0 && p>0])
+end
 
 mutable struct AMeasurement{T<:Number} <: AbstractMeasurement 
     SumRosenbluthWeights::T
-    AvgCosBondAngle::Vector{T}
-    AvgLp::Vector{T}
-    OldWeight::T
-    AMeasurement(NBeads::I) where {I<:Integer} = new{BigFloat}(zero(BigFloat ), zeros(BigFloat, NBeads-2), zeros(BigFloat, NBeads-2), zero(BigFloat)) #where {T::BigFloat}
+    AvgCosBondAngle::Array{T}
+    Weight::Vector{T}
+    AMeasurement(NBeads::I, NSteps::I) where {I<:Integer} = new{BigFloat}(zero(BigFloat ), zeros(BigFloat,(NSteps,  NBeads-2)), zeros(BigFloat, NSteps)) #where {T::BigFloat}
 end
 
 
 function RosenbluthChains.InitMeasurement(data::SimData, param::SimulationParameters, Tmp::AMeasurement) 
-    return AMeasurement(data.NBeads)
+    return AMeasurement(data.NBeads, data.BatchSize)
 end 
 
 function RosenbluthChains.MeasureAfterBatch(data::SimData, param::SimulationParameters,Measurement::AMeasurement) 
-BatchWeigth= Measurement.SumRosenbluthWeights- Measurement.OldWeight
-     Measurement.AvgCosBondAngle ./=  BatchWeigth
-     Measurement.AvgLp .+= -3.8.\log.(Measurement.AvgCosBondAngle) .* (BatchWeigth)
-     Measurement.OldWeight = Measurement.SumRosenbluthWeights
-     fill!(Measurement.AvgCosBondAngle, 0.0)
+    #=
+    BatchWeigth= Measurement.SumRosenbluthWeights- Measurement.OldWeight
+    Measurement.AvgCosBondAngle ./=  BatchWeigth
+    println("Batch lp: $(-3.8./log.(Measurement.AvgCosBondAngle[1]))")
+    Measurement.AvgLp .+= -3.8./log.(Measurement.AvgCosBondAngle) .* (BatchWeigth)
+    Measurement.OldWeight = Measurement.SumRosenbluthWeights
+    fill!(Measurement.AvgCosBondAngle, 0.0)
+    =#
 end
 
 function RosenbluthChains.MeasureAfterChainGrowth(data::SimData, param::SimulationParameters, Measurement::AMeasurement) 
@@ -31,37 +37,40 @@ function RosenbluthChains.MeasureAfterChainGrowth(data::SimData, param::Simulati
     println("\n\n\n")
     println(cos.(angles[1:10]))
     end=#
-    Measurement.AvgCosBondAngle .+= getRosenbluthWeigth(data, param).*BigFloat.(cos.(angles))#.*sin.(angles)
+    Measurement.AvgCosBondAngle[data.id_in_batch,:] .= BigFloat.(cos.(angles))
+    Measurement.Weight[data.id_in_batch] = getRosenbluthWeigth(data, param)
+    #println("Weight:  $(data.RosenbluthWeight)  Sum: $(Measurement.AvgCosBondAngle[5]) $(BigFloat.(cos.(angles[5]))) $(cos.(angles[5]))")
     #println("Weight : $(getRosenbluthWeigth(data, param)) , sum $(Measurement.AvgCosBondAngle[1])")
 
     Measurement.SumRosenbluthWeights += data.RosenbluthWeight #getRosenbluthWeigth(data, param)#
 end
     
-angles=collect(range(0,π/2.0,10_000))
 
 N_Trial=8
-N= 60
+N_Test=10_000
+N= 100
 N_cut=15
-N_Test=500_000
-φ=ones(N)*2#collect(range(0.01,π, N-2))
+φ=ones(N)*1#collect(range(0.01,π, N-2))
 r=3.8
-μ=10.0
-σ=1.0
+μ=3.0
+σ=0.1
 Data = SimData("./tmp/", 1.0, N, N_Trial      , N_Test, 1)
-KP = SimulationParameters( FixedBondParameters(r), Cosine_BondAngles(ones(Float64, N)*μ), FixedTorsionAngles(φ), IdealChain())
-@time Meas = RunSim(Data,KP, AMeasurement(N));
-
-f(K,x) = @. cos(x)*sin(x)*exp(-1.0*K*(1.0-cos(x)))
-h(K, y)=@. exp(-1.0*K*(1.0-cos(y))) ### P(Angle)
-norm(x) = x./sum(x)
 
 
 N_Manual=10_000_000
 
-### @TODO Check lp values and force field
-### @TODO implement better angle sampling to have more equally distributed weights
 
 @testset "Cosine_BondAngles & GaussianLp_Cosine_BondAngles " begin
+
+    #=
+KP = SimulationParameters( FixedBondParameters(r), Cosine_BondAngles(ones(Float64, N)*μ), FixedTorsionAngles(φ), IdealChain())
+@time Meas = RunSim(Data,KP, AMeasurement(N));
+
+f(K,x) = @. cos(x)*sin(x)*exp(-1.0*K*(1.0-cos(x)))
+h(K, y)=@. exp(-1.0*K*(1.0-cos(y)))*sin(y) ### P(Angle)
+norm(x) = x./sum(x)
+
+
     #println(RosenbluthChains.AvgCos(2.0))
     
     @test (RosenbluthChains.AvgCos(2.0) - 0.537315) <10^-5
@@ -74,79 +83,131 @@ N_Manual=10_000_000
     RosenbluthChains.GetTrialBoltzmannWeight(Data,KP)
     @time choose_ids = [begin ChooseTrialPosition(Data, KP); Data.tid; end for _ in 1:N_Manual]
     @time hist = [ count(x->x==(a), choose_ids) for a in 1:N_Trial]./N_Manual
-    println(hist)
-    println(norm(h(KP.BondAngleParam.K[1], Data.trial_angle)))
-    @test all( abs.(hist .-norm(h(KP.BondAngleParam.K[1], Data.trial_angle))) .< 10^-3)
 
-    cos_x = hist.*cos.(Data.trial_angle).*sin.(Data.trial_angle)
-    @test all(abs.(norm(cos_x) .-norm(f.(KP.BondAngleParam.K[1], Data.trial_angle))) .< 10^-3)
+    cos_x = hist.*cos.(Data.trial_angle)
 
-    println("Avg lp $(Meas.AvgLp[1:3]) , weight $(Meas.SumRosenbluthWeights)")
     AvgCos= Meas.AvgLp[1:end]./Meas.SumRosenbluthWeights
-    #sort!(AvgCos)
-    println("Avg reweight lp $(AvgCos[1:3])")
-    println(Meas.SumRosenbluthWeights)
-    println(RosenbluthChains.AvgCos(KP.BondAngleParam.K[1]))
-    println(extrema(AvgCos))
-    #println(AvgCos)
-    println(sum(AvgCos)/(N-2),"  ",  -3.8/log(sum(AvgCos)/(N-2)))
-    μ_test = -r/log(sum(AvgCos)/(N-2))
-    lp = @. -r/log(AvgCos)#[N_cut:end-N_cut])
+
+    μ_test = sum(AvgCos)/(N-2)#-r/log(sum(AvgCos)/(N-2))
+    lp = AvgCos#@. -r/log(AvgCos)#[N_cut:end-N_cut])
 
     σ_test = sqrt(sum((lp.-μ_test).^2)/((N-2)*(N-3)))
-    println("σ:$μ vs: $μ_test")
-    println("σ:$σ vs: $σ_test")
-    println(" $(extrema(lp)) vs $(μ)")
-    println(-3.8/log(RosenbluthChains.AvgCos(KP.BondAngleParam.K[1])))
-    
-    #fig = scatter(AvgCos, lp, xlabel="<cos(x)>", ylabel="lp", yaxis=:log, label="")
-    #savefig(fig,"./tmp.png")
-
-end;
 
 
-#### Inverse Persistence length
-#=
-N_Trial=8
-N= 15
-N_cut=15
-N_Test=500#_000
-N_Batches=10
-φ=collect(range(0.01,π, N-2))
-r=3.8
-μ=0.01
-σ=0.001
-Data = SimData("./tmp/", 1.0, N, N_Trial      , N_Test, N_Batches)
-KP = SimulationParameters( FixedBondParameters(r), GaussianInvLp_Cosine_BondAngles(μ,σ), FixedTorsionAngles(φ), IdealChain())
-@time Meas = RunSim(Data,KP, AMeasurement(N));
-
-f(K,x) = @. cos(x)*sin(x)*exp(-1.0*K*(1.0-cos(x)))
-h(K, y)=@. exp(-1.0*K*(1.0-cos(y))) ### P(Angle)
-norm(x) = x./sum(x)
-
-
-N_Manual=10_000_000
-    
-rand_num = rand(KP.BondAngleParam.InvPersistenceDist, 100_000) #1-0
-bla =sum(rand_num)/100_000
-println("Check Rand Dist: μ:$(bla), σ:$(sqrt(sum((rand_num.-bla).^2)/(99_999)))")
-
-### maybe error i first 3
-AvgCos= Meas.AvgCosBondAngle[3:end]./Meas.SumRosenbluthWeights
-AvgLp= Meas.AvgLp[3:end]./Meas.SumRosenbluthWeights
-#sort!(AvgCos)
-println("Rosenbluth weight: ", Meas.SumRosenbluthWeights)
-println("K=", KP.BondAngleParam.K[1], " <cos(K)>", RosenbluthChains.AvgCos(KP.BondAngleParam.K[1]),"  lp(K)=", -3.8./log.(RosenbluthChains.AvgCos.(KP.BondAngleParam.K[1])))
-println("lp=", AvgLp)
-println("Min/Max (<cos(x)>)", extrema(AvgCos))
-#println(AvgCos)
-println("AvgAvgCos $(sum(AvgCos)/(length(AvgCos)))   lp=$(-3.8/log( sum(AvgCos)/(length(AvgCos))))")
-Invlp = @. -log(AvgCos)/r#[N_cut:end-N_cut])
-μ_test = (sum(Invlp)/(length(Invlp)))
-σ_test = sqrt(sum((Invlp.-μ_test).^2)/(length(Invlp)*(length(Invlp)-1)))
-@printf "μ: %3.8f  vs: %3.8f \n" μ μ_test
-
-@printf "σ: %3.8f vs: %3.8f \n" σ σ_test
-
-println(" $(extrema(Invlp)) vs $(μ)")
 =#
+
+
+N_Rand = 10_000_000
+fac=1.05    
+
+ψ = collect(0:0.01:π)
+bin_center = (ψ[2:end].+ψ[1:end-1])/2.0
+
+for (μ, σ) in [ (3.0, 0.1),(50.0, 1.0),(500.0, 5.0)]
+    ### K function first
+    K_target= RosenbluthChains.solveRecursive.(RosenbluthChains.lpToCosAngle.(μ),RosenbluthChains.AvgCos , 0.01,200.0 )
+    KP = SimulationParameters( FixedBondParameters(r), GaussianK_Cosine_BondAngles(K_target, σ), FixedTorsionAngles(φ), IdealChain())
+
+    tuple = [RosenbluthChains.give_rand(KP.BondAngleParam.Sampler) for i in 1:N_Rand]
+    K = getindex.(tuple, 1)
+
+    μ_K = sum(K)/N_Rand
+    σ_K = sqrt(sum( (μ_K.-K).^2)/(N_Rand-1))
+    Δμ_K = σ_K/sqrt(N_Rand)
+
+    angles = [ x for (k,x) in tuple if (k>K_target && k<K_target*fac)]
+
+    hist =  fit(Histogram, angles, ψ) ### computes histogram
+    StatsBase.normalize(hist, mode=:density)
+    new_hist =hist.weights ./ sum(hist.weights*(ψ[2]-ψ[1]))
+    val= RosenbluthChains.Cosine_BondAngle_func.(K_target*(1.0+fac)/2.0, bin_center)
+    theory_hist=val./sum(val*0.01)
+
+    @test ComputeKullbackLeiblerDivergence(new_hist,theory_hist) <0.01 ### close to 0 means very similar distributions
+
+    fig = histogram(angles, normalized=true)
+    plot!(bin_center, new_hist, label="Statsbase Hist")
+    plot!(bin_center, theory_hist)
+    savefig(fig, "./tmp/$(μ)_angle_test.pdf")
+
+
+
+
+
+    fig=histogram(K, normalized=true)
+    X= collect(LinRange(K_target-5.0*σ,K_target+5.0*σ, N+1))
+    f(x)=1.0/(sqrt(2.0*π)*σ)*exp(-0.5*((x-K_target)/σ)^2)
+    plot!(X, f.(X)) 
+    savefig(fig, "./tmp/$(μ)_K_hist.pdf")
+
+
+    @test K_target<μ_K + 3.0*Δμ_K && K_target>μ_K - 3.0*Δμ_K
+    @test σ-σ_K<0.001
+
+    
+    
+    Meas = RunSim(Data,KP, AMeasurement(N, N_Test));
+    AvgCos=sum([Meas.AvgCosBondAngle[i,:].*Meas.Weight[i] for i in 1:N_Test])./Meas.SumRosenbluthWeights#[1:end]
+    lp = AvgCos
+
+
+    lp = -3.8./log.(AvgCos)
+    μ_test = sum(lp)/(N-2)
+    σ_test = sqrt(sum((lp.-μ_test).^2)/((N-3)))
+
+    @test μ<μ_test + 3.0*σ_test && μ>μ_test - 3.0*σ_test
+
+                
+
+    ### lp func
+    KP = SimulationParameters( FixedBondParameters(r), GaussianLp_Cosine_BondAngles(μ, σ), FixedTorsionAngles(φ), IdealChain())
+
+    tuple = [RosenbluthChains.give_rand(KP.BondAngleParam.Sampler) for i in 1:N_Rand]
+    lp = getindex.(tuple, 1)
+    μ_lp = sum(K)/N_Rand
+    σ_lp = sqrt(sum( (μ_lp.-K).^2)/(N_Rand-1))
+    Δμ_lp = σ_lp/sqrt(N_Rand)
+
+    K_target=RosenbluthChains.solveRecursive.(RosenbluthChains.lpToCosAngle.(μ),RosenbluthChains.AvgCos , 0.0001,200.0 )
+
+
+    angles = [ x for (k,x) in tuple if (k>μ && k<μ*fac)]
+
+    hist =  fit(Histogram, angles, ψ) ### computes histogram
+    StatsBase.normalize(hist, mode=:density)
+    new_hist =hist.weights ./ sum(hist.weights*(ψ[2]-ψ[1]))
+    val= RosenbluthChains.Cosine_BondAngle_func.(K_target*(1.0+fac)/2.0, bin_center)
+    theory_hist=val./sum(val*0.01)
+
+    μ_lp = sum(lp)/N_Rand
+    σ_lp = sqrt(sum( (μ_lp.-lp).^2)/(N_Rand-1))
+    Δμ_lp = σ_lp/(N_Rand)
+
+
+    @test abs(μ-μ_lp)/μ<10^-3
+    @test (σ-σ_lp)/σ<0.001
+
+    fig = histogram(angles, normalized=true)
+    plot!(bin_center, new_hist, label="Statsbase Hist")
+    plot!(bin_center, theory_hist)
+    savefig(fig, "./tmp/$(μ)_lp_angle_test.pdf")
+
+    @test ComputeKullbackLeiblerDivergence(new_hist,theory_hist) <0.02
+
+
+
+                
+    Meas = RunSim(Data,KP, AMeasurement(N, N_Test));
+    AvgCos=sum([Meas.AvgCosBondAngle[i,:].*Meas.Weight[i] for i in 1:N_Test])./Meas.SumRosenbluthWeights
+    lp = AvgCos
+
+    lp = -3.8./log.(AvgCos)
+    μ_test = sum(lp)/(N-2)
+    σ_test = sqrt(sum((lp.-μ_test).^2)/((N-3)))
+    #println("μ:$μ vs: $μ_test")
+    #println("σ: vs: $σ_test")
+    #println(" $(extrema(lp)) vs $(μ)")
+    @test μ<μ_test + 3.0*σ_test && μ>μ_test - 3.0*σ_test
+
+end
+end

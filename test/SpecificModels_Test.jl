@@ -15,7 +15,7 @@ Meas = RunSim(Data,KP, NoMeasurement());
 
 
 @testset "fixed bond length" begin
-    #println([ norm(Data.xyz[i+1]-Data.xyz[i]) for i in 1:N-1   ])
+    println([ norm(Data.xyz[i+1]-Data.xyz[i]) for i in 1:N-1   ])
     @test all(r .≈ [ norm(Data.xyz[i+1]-Data.xyz[i]) for i in 1:N-1   ])
 end;
 

@@ -40,7 +40,7 @@ mutable struct SimData{T<:Real, I<:Integer}
     tmp2::Vector3{T}
     tmp3::Vector3{T}
     tmp4::Vector{T}
-    btmp::Vector{Bool}
+    btmp::Vector{T}
 
     ### Constructor
     SimData(FolderPath::String, type::T, NBeads::I, NTrials::I, BatchSize::I, NumberOfBatches::I) where {T<: Real, I<: Integer} =  

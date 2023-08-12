@@ -22,14 +22,14 @@ end
 function GetTrialBoltzmannWeight(data::SimData,param::SimulationParameters)
         fill!(data.LogBoltzmannFaktor, 0.0)
 
-        ### TODO: Automatise so that nothing can be forgotten.
+        ### @TODO: Automatise so that nothing can be forgotten.
         GetTrialBoltzmannWeight(data, param.BondParam)
         GetTrialBoltzmannWeight(data, param.BondAngleParam)
         GetTrialBoltzmannWeight(data, param.TorsionAngleParam)
         GetTrialBoltzmannWeight(data, param.SAWParam)
 
         #map(field-> GetTrialBoltzmannWeight(data,  getfield(param, field)), fieldnames(typeof(param)))
-        data.BoltzmannFaktor .= @. exp(data.LogBoltzmannFaktor)
+        data.BoltzmannFaktor .= @. exp(data.LogBoltzmannFaktor)/data.NTrials
         nothing
 end
 
@@ -72,9 +72,12 @@ function ChooseTrialPosition(data::SimData,param::SimulationParameters)
 
     cumsum!(data.tmp4, data.BoltzmannFaktor)
 
-    data.btmp .=  (rand(eltype(data.tmp1))*data.tmp4[end]).<= data.tmp4
-    data.tid = findfirst(data.btmp) 
-    data.LogRosenbluthWeight+= data.LogBoltzmannFaktor[data.tid]
+   # data.btmp .=  (rand(eltype(data.tmp1))*data.tmp4[end]).<= data.tmp4
+    rnd_num=rand(eltype(data.tmp1))*data.tmp4[end]
+    data.tid = findfirst(x->x>=rnd_num, data.tmp4) 
+    #data.LogRosenbluthWeight+= sum(data.LogBoltzmannFaktor)
+    data.btmp .=exp.(data.LogBoltzmannFaktor)
+    data.RosenbluthWeight *= sum(data.btmp)/data.NTrials
     nothing
 end
 

@@ -57,7 +57,6 @@ end
     end
 end
 
-
 function GetTrialBoltzmannWeight(data::SimData,param::AbstractBondParam) nothing end
 
 function GetTrialBoltzmannWeight(data::SimData,param::AbstractBondAngleParam) nothing end

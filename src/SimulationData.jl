@@ -40,6 +40,7 @@ mutable struct SimData{T<:Real, I<:Integer}
     tmp2::Vector3{T}
     tmp3::Vector3{T}
     tmp4::Vector{T}
+    tmp5::Vector{T}
     btmp::Vector{T}
 
     ### Constructor
@@ -47,6 +48,6 @@ mutable struct SimData{T<:Real, I<:Integer}
     new{T,I}(FolderPath, NBeads, NTrials, BatchSize, NumberOfBatches, 1,1, 1,-1,0,0, Vector{Vector3{T}}(NBeads) ,
     0.0,0.0,zeros(NTrials), zeros(NTrials),
     zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials), Vector{Vector3{T}}(NTrials), 
-    Matrix3{T}(), Vector3{T}(0,0,0),Vector3{T}(0,0,0), Vector3{T}(0,0,0) , Vector3{T}(0,0,0), Vector3{T}(0,0,0), Vector3{T}(0,0,0) ,zeros(T, NTrials), zeros(Bool, NTrials) )
+    Matrix3{T}(), Vector3{T}(0,0,0),Vector3{T}(0,0,0), Vector3{T}(0,0,0) , Vector3{T}(0,0,0), Vector3{T}(0,0,0), Vector3{T}(0,0,0) ,zeros(T, NTrials), zeros(T, NTrials), zeros(Bool, NTrials) )
 
 end

@@ -13,6 +13,6 @@ include("./RosenbluthMethod.jl")
 include("./SpecificModels.jl")
 
 include("./Models/Cosine_BondAngels.jl")
-
+include("./Models/LJ_Repulsion.jl")
 
 end # module RosenbluthChains

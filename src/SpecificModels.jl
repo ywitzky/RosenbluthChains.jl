@@ -1,6 +1,8 @@
 
-export RandTorsion, FixedBondParameters, FixedBondAngles, FixedTorsionAngles, GaussLpBondAngles, IdealChain, SAWParameters, SimulationParameters
+export RandTorsion, FixedBondParameters, FixedBondAngles, FixedTorsionAngles, GaussLpBondAngles, IdealChain, SAWParameters, SimulationParameters, RandBondAngle
 using Distributions 
+
+struct RandBondAngle <: AbstractBondAngleParam end
 
 
 struct RandTorsion <: AbstractTorsionAngleParam end
@@ -39,6 +41,14 @@ end
    rand!(data.trial_torsion_angle, eltype(data.TType))
    data.trial_torsion_angle.*= (eltype(data.TType))(2.0*π)
    CompTrigonometricTrialTorsionAngles(data)
+end
+
+@inline function SetTrialBondAngle(data::SimData, param::RandBondAngle)
+    # data.trial_torsion_angle .= 
+   rand!(data.trial_angle, eltype(data.TType))
+   data.trial_angle .= @.   acos(2.0*data.trial_angle-1)
+
+   CompTrigonometricTrialBondAngles(data)
 end
 
 @inline function SetTrialTorsionAngle(data::SimData, param::FixedTorsionAngles)
@@ -84,6 +94,8 @@ end
 @inline function InitSimParam(data::SimData,param::SAWParameters ) end
 
 @inline function InitSimParam(data::SimData,param::IdealChain ) end
+
+@inline function InitSimParam(data::SimData,param::RandBondAngle ) end
 
 @inline function InitSimParam(data::SimData,param::RandTorsion ) end
 

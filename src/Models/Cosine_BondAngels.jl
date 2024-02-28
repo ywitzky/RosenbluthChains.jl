@@ -94,24 +94,27 @@ struct Cosine_BondAngle_Prefactor_Sampler{I<:Int, T<: Real} <: Sampleable{Univar
     K_width::T
     max_val::T
     P::Any
-    Cosine_BondAngle_Prefactor_Sampler(μ::T, σ::T, P, K; NK=10::Int64, NA=10::Int64) where {T<:Real} = begin
-        K_borders = collect(LinRange(μ-5.0*σ,μ+5.0*σ, NK+1))
+    width::T
+    offset::T
+    Cosine_BondAngle_Prefactor_Sampler(μ::T, σ::T, P, K, width; NK=10::Int64, NA=10::Int64) where {T<:Real} = begin
+        
+        K_borders = collect(LinRange(μ-width*σ,μ+width*σ, NK+1))
         K_width= K_borders[2]-K_borders[1]
 
-        K_mean = (K_borders[2:end].+K_borders[1:end-1])/2.0
-        K_cdf = cdf.(Normal(μ, σ), K_borders[2:end])
+        #K_mean = (K_borders[2:end].+K_borders[1:end-1])/2.0
+        K_cdf = cdf.(Normal(μ, σ), K_borders[2:end]).-cdf(Normal(μ,σ), μ-width*σ)
         K_max  = [max(pdf(Normal(μ, σ),K_borders[i]), pdf(Normal(μ, σ),K_borders[i+1]) ) for i in 1:NK]
         K_ind =  findfirst(μ.<=K_borders) -1
         K_max[K_ind] = max(pdf(Normal(μ, σ),μ), K_max[K_ind])
         max_val = maximum([P(k,maxima_pos(K(k))) for k in  collect(LinRange(μ-1.0*σ,μ+1.0*σ, 100))]) ### safety margin
-        new{Int64, T}(μ, σ,K_borders,K_cdf,K_max, K_width,max_val, P)
+        new{Int64, T}(μ, σ,K_borders,K_cdf,K_max, K_width,max_val, P,width*2.0*σ,  μ-width*σ)
     end
 end
 
 
 function give_rand( s::Cosine_BondAngle_Prefactor_Sampler)
     ### draw gaussian for K or lp
-    rand_K  = _rand_off(10.0*s.σ, s.μ-5.0*s.σ)
+    rand_K  = _rand_off(s.width, s.offset) ### x*σ, μ-x*σ
     rnd_num = rand(eltype(s.K_cdf))*s.K_cdf[end]
     ind = findfirst(x->x>=rnd_num, s.K_cdf)
     rand_K = _rand_off(s.K_width, s.K_borders[ind])
@@ -135,7 +138,8 @@ mutable struct GaussianK_Cosine_BondAngles{T<:Real} <: AbstractBondAngleParam
     σ::T
     Sampler::Cosine_BondAngle_Prefactor_Sampler
     GaussianK_Cosine_BondAngles(μ::T, σ::T) where {T<:Real} = begin 
-        new{T}(μ, σ, Cosine_BondAngle_Prefactor_Sampler(μ, σ, Cosine_BondAngle_func, x->x))
+        max_width =min(5.0,μ/(σ*1.0001))
+        new{T}(μ, σ, Cosine_BondAngle_Prefactor_Sampler(μ, σ, Cosine_BondAngle_func, x->x, max_width))
     end
 end
 
@@ -166,12 +170,14 @@ mutable struct GaussianLp_Cosine_BondAngles{T<:Real} <: AbstractBondAngleParam
     σ::T
     Sampler::Cosine_BondAngle_Prefactor_Sampler
     GaussianLp_Cosine_BondAngles(μ::T, σ::T) where {T<:Real} = begin
+        max_width =min(5.0,μ/(σ*1.0001))
+
         ### make linear interpolation
-        lp = collect(LinRange(μ-6.0*σ, μ+6.0*σ, 500))
+        lp = collect(LinRange(μ-(max_width)*σ, μ+(max_width)*σ, 500))
         K_val= solveRecursive.(lpToCosAngle.(lp),AvgCos , 0.0001,10000.0 )
         K = linear_interpolation(lp, K_val)
         H(x1,x2) = Cosine_BondAngle_func(K(x1), x2)
-        new{T}(μ, σ, Cosine_BondAngle_Prefactor_Sampler(μ, σ, H, K))
+        new{T}(μ, σ,  Cosine_BondAngle_Prefactor_Sampler(μ, σ, H, K, max_width))
     end
 end
 

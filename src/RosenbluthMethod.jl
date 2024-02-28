@@ -1,4 +1,4 @@
-using ProgressBars
+using ProgressMeter
 
 export RunSim, getRosenbluthWeigth
 
@@ -17,8 +17,8 @@ end
 function mainLoop( data::SimData, param::SimulationParameters, Measurement::AbstractMeasurement)#    ::Dict{String, Array{T}}, LA_Obj::LA.SimData{T2, N}) where {T<:Real, N<:Integer, T2<:Real}
 
     for data.batch_id in 0:data.NumberOfBatches-1
-        println("Batch $(data.batch_id+1) /$(data.NumberOfBatches)")
-        for data.id_in_batch in ProgressBar(1:data.BatchSize, printing_delay=0.1)
+        #println("Batch $(data.batch_id+1) /$(data.NumberOfBatches)")
+        @showprogress 1 "Computing batch $(data.batch_id+1)" for data.id_in_batch in 1:data.BatchSize#, printing_delay=0.1
             ResetSim(data, param)
             SetFirstThreeBeads(data, param)
             ComputeBeadsIteratively(data,param)
@@ -31,31 +31,7 @@ function mainLoop( data::SimData, param::SimulationParameters, Measurement::Abst
 end
 
 function ComputeTrialPositions(data::SimData, param::SimulationParameters)
-    for n in 1:data.NTrials
-        #=CalcRotationMatrix(data.crossproduct,data.trial_angle[n], data, param)
-        *(data.RotationMatrix,data.current , data.tmp2 )
-
-        CalcRotationMatrix(data.current ,π/2.0+data.trial_torsion_angle[n], data, param )
-        *(data.RotationMatrix,data.tmp2.-cos(data.trial_angle[n]).*data.current, data.new_vec)
-        data.new_vec.+=(data.tmp2*data.current)=#
-
-        #data.tmp2 .= sin(data.trial_angle[n])*data.trial_radius[n]/norm(data.crossproduct).*data.crossproduct
-        #=CalcRotationMatrix(data.current ,data.trial_torsion_angle[n], data, param )
-        *(data.RotationMatrix,data.crossproduct, data.tmp3)
-
-        data.new_vec .= data.current*(cos(data.trial_angle[n])*data.trial_radius[n]/norm(data.current)).+data.tmp3*sin(data.trial_angle[n])*data.trial_radius[n]/norm(data.tmp3)
-        
-        length = norm(data.new_vec)
-
-        data.tmp3 .= data.new_vec.* (data.trial_radius[n]/length)
-
-        data.trial_positions[n][:] .= (data.xyz[data.id-1].+ data.tmp3)
-       
-        =#
-        #length = norm(data.new_vec)
-        #data.tmp3 .= data.new_vec.* (data.trial_radius[n]/length)
-
-        
+    for n in 1:data.NTrials       
         u1=data.crossproduct/norm(data.crossproduct)
         u2=Vector3{Float64}(0,0,0)
         ×( data.current/norm(data.current),-1.0 .*u1, u2)
@@ -65,11 +41,7 @@ function ComputeTrialPositions(data::SimData, param::SimulationParameters)
             .+ u1.*data.sin_trial_torsion_angle[n]).* data.sin_trial_angle[n]
             .+data.current./norm(data.current).*data.cos_trial_angle[n])          .*data.trial_radius[n]
 
-
         data.trial_positions[n][:] .= (data.xyz[data.id-1].+ data.new_vec)
-        
-
-    
     end
 end
 
@@ -82,6 +54,7 @@ function ResetSim(data::SimData, param::SimulationParameters)
     data.tid=1
     data.RosenbluthWeight=1.0
     data.LogRosenbluthWeight=0.0
+    clear(data, param.SAWParam)
 end
 
 function SetFirstThreeBeads(data::SimData, param::SimulationParameters)

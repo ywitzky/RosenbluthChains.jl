@@ -1,4 +1,4 @@
-export SimulationParameters , InitMeasurement, MeasureAfterChainGrowthMeasureAfterBatch, SaveMeasurements, AbstractMeasurement, ChooseTrialPosition
+export SimulationParameters , InitMeasurement, MeasureAfterChainGrowthMeasureAfterBatch, SaveMeasurements, AbstractMeasurement, ChooseTrialPosition, clear
 
 abstract type AbstractBondParam end
 
@@ -17,6 +17,7 @@ struct SimulationParameters{T<:Real, I<:Integer}
     TorsionAngleParam::AbstractTorsionAngleParam
     SAWParam::AbstractSelfAvoidanceParameters
 end
+
 
 ### functions only compute the Log of the boltzmann faktor and finale evaluation of the exponent is done together
 function GetTrialBoltzmannWeight(data::SimData,param::SimulationParameters)
@@ -68,7 +69,7 @@ function GetTrialBoltzmannWeight(data::SimData,param::AbstractSelfAvoidanceParam
 
 function ChooseTrialPosition(data::SimData,param::SimulationParameters)
     GetTrialBoltzmannWeight(data,param)
-
+    #data.btmp .=exp.(data.LogBoltzmannFaktor)
     cumsum!(data.tmp4, data.BoltzmannFaktor)
 
    # data.btmp .=  (rand(eltype(data.tmp1))*data.tmp4[end]).<= data.tmp4
@@ -76,7 +77,9 @@ function ChooseTrialPosition(data::SimData,param::SimulationParameters)
     data.tid = findfirst(x->x>=rnd_num, data.tmp4) 
     #data.LogRosenbluthWeight+= sum(data.LogBoltzmannFaktor)
     data.btmp .=exp.(data.LogBoltzmannFaktor)
-    data.RosenbluthWeight *= sum(data.btmp)/data.NTrials
+    data.RosenbluthWeight *= sum(   data.btmp)/data.NTrials
+    #println(data.LogBoltzmannFaktor)
+    #println(data.RosenbluthWeight, "  ",sum(   data.btmp)/data.NTrials )
     nothing
 end
 
@@ -90,3 +93,5 @@ function SaveMeasurements(data::SimData, param::SimulationParameters,Measurement
 
 
 SimulationParameters( Bond::AbstractBondParam,Angle::AbstractBondAngleParam, Torsion::AbstractTorsionAngleParam, SAW::AbstractSelfAvoidanceParameters)  = SimulationParameters{Float64,Int64}(Bond,Angle,Torsion,SAW)
+
+function clear(data::SimData, param::AbstractSelfAvoidanceParameters) nothing end

@@ -5,6 +5,14 @@ function harmonic_energy(distance::Float64, k::Float64, r0::Float64)
     return 0.5 * k * (distance - r0)^2
 end
 
+function getTheoryhist(bins::Vector{R}, k::R, r0::R) where {R<:Real}
+    energies = [harmonic_energy(dist, k, r0) for dist in bins]
+    Z = sum(exp.(-energies / kbT))
+    theory_hist =  exp.(-energies / temperature) / Z 
+    theory_hist ./= sum(theory_hist)
+    return theory_hist
+end
+
 
 # emulate the creation of 100_000 bond distances and their weights
 N = 100_000
@@ -62,15 +70,35 @@ bins = collect(0, 0.1,10.0)
             distances_hist = fit(Histogram, radii, bins)
             StatsBase.normalize(distances_hist, mode=:density)
 
-            energies = [harmonic_energy(dist, k, r0) for dist in bins]
-            Z = sum(exp.(-energies / kbT))
-            theory_hist =  exp.(-energies / temperature) / Z 
-            theory_hist ./= sum(theory_hist)
-
+           
+            theory_hist = getTheoryhist(bins, k, r0)
 
             @test ComputeKullbackLeiblerDivergence(radii_hist,theory_hist) <0.1
             @test ComputeKullbackLeiblerDivergence(distances_hist,theory_hist) <0.1
 
         end
+    end
+end
+
+### only test the random number enerator since computeTrialPositions evaluates in the same way in the slow variant.
+@testset "HarmonicBondLength " begin
+
+    for (k, r0) in zip([10,20,30], [2.0,5.0, 8.0 ])
+
+        BondPotential =  HarmonicBondLength(k, r0)
+        ### get a random radius for each iteration
+        for i in 1:N
+            SetTrialRadius(My_Simulation_Data,BondPotential)
+            radii[i] = My_Simulation_Data.trial_radius[rand(1:NTrial)]
+        end
+
+        radii_hist = fit(Histogram, radii, bins)
+        StatsBase.normalize(radii_hist, mode=:density)
+
+        theory_hist = getTheoryhist(bins, k, r0)
+
+        @test ComputeKullbackLeiblerDivergence(radii_hist,theory_hist) <0.1
+        @test ComputeKullbackLeiblerDivergence(distances_hist,theory_hist) <0.1
+
     end
 end

@@ -1,6 +1,8 @@
 using Test, RosenbluthChains
 mkpath("./tmp/")
 
+include("./Helper.jl")
+
 include("./NoMeasurement.jl")
 #include("./SpecificModels_Test.jl")
 #include("./BoltzmannFaktor_Test.jl")

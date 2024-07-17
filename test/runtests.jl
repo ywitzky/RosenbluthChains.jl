@@ -8,5 +8,7 @@ include("./NoMeasurement.jl")
 #include("./Cosine_BondAngles_Test.jl")
 include("./LJ_Repulsion_Test.jl")
 
+include("./Cavados2/Calvados2_Test.jl")
+
 
 #rm("./tmp/")

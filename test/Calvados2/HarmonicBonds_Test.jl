@@ -29,6 +29,7 @@ kbT = 1
 My_Simulation_Data = SimData("../tmp/", 1.0, NBeads, NTrial, PolymerPerBatch, NBatches)
 
 bins = collect(0.0:0.1:10.0)
+x = (bins[2:end].+bins[1:end-1])./2.0
 
 @testset "HarmonicBondLength_Slow " begin
 
@@ -60,7 +61,7 @@ bins = collect(0.0:0.1:10.0)
             My_Simulation_Data.xyz[4] .= My_Simulation_Data.trial_positions[My_Simulation_Data.tid]
             Weights[i] = My_Simulation_Data.RosenbluthWeight
             radii[i] = My_Simulation_Data.trial_radius[My_Simulation_Data.tid]
-            ### data.xyz stores vector3 types which represent a normal 3d vector for which -,+,* are defined
+
             distances[i] = RosenbluthChains.norm(My_Simulation_Data.xyz[4]-My_Simulation_Data.xyz[3]) ### in case you wouldnt trust the implementation which builds on top of .trial_radius
         end
 
@@ -73,7 +74,6 @@ bins = collect(0.0:0.1:10.0)
         StatsBase.normalize(distances_hist, mode=:density)
         distances_hist =distances_hist.weights ./ sum(distances_hist.weights*(bins[2]-bins[1]))
         
-        x = (bins[2:end].+bins[1:end-1])./2.0
 
         theory_hist = getTheoryhist(x, k, r0)
 
@@ -88,25 +88,38 @@ bins = collect(0.0:0.1:10.0)
     end
 end
 
-### only test the random number enerator since computeTrialPositions evaluates in the same way in the slow variant.
+### only test the random number generator since computeTrialPositions evaluates in the same way in the slow variant.
 @testset "HarmonicBondLength " begin
+    xgrids = collect(0.01:0.01:10) ### interpolation grid used to determin cumulative distribution functions
+    for (k, r0) in zip([10.0,20.0,30.0], [2.0,5.0, 8.0 ])
 
-    for (k, r0) in zip([10,20,30], [2.0,5.0, 8.0 ])
+        BondPotential =  HarmonicBondLength(k, r0, xgrids)
 
-        BondPotential =  HarmonicBondLength(k, r0)
         ### get a random radius for each iteration
         for i in 1:N
-            SetTrialRadius(My_Simulation_Data,BondPotential)
+            RosenbluthChains.SetTrialRadius(My_Simulation_Data,BondPotential)
             radii[i] = My_Simulation_Data.trial_radius[rand(1:NTrial)]
         end
-
         radii_hist = fit(Histogram, radii, bins)
         StatsBase.normalize(radii_hist, mode=:density)
+        radii_hist =radii_hist.weights ./ sum(radii_hist.weights*(bins[2]-bins[1]))
 
-        theory_hist = getTheoryhist(bins, k, r0)
+        ### reuse distance to only test the random number generator
+        distances.= BondPotential.inv_cdf.(rand(N))
+        distances_hist = fit(Histogram, distances, weights(Weights), bins)
+        StatsBase.normalize(distances_hist, mode=:density)
+        distances_hist =distances_hist.weights ./ sum(distances_hist.weights*(bins[2]-bins[1]))
+        
+
+        theory_hist = getTheoryhist(x, k, r0)
+
+        fig = Plots.bar(x, radii_hist, label="radii")
+        Plots.plot!(x, theory_hist, label="theory")
+        Plots.savefig(fig, "/uni-mainz.de/homes/ywitzky/Code_Projects/rosenbluthchains/test/tmp/HarmonicBondLength_$(k)_$(r0).pdf")
 
         @test ComputeKullbackLeiblerDivergence(radii_hist,theory_hist) <0.1
         @test ComputeKullbackLeiblerDivergence(distances_hist,theory_hist) <0.1
+
 
     end
 end

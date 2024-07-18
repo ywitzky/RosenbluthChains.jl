@@ -32,7 +32,6 @@ bins = collect(0.0:0.1:10.0)
 x = (bins[2:end].+bins[1:end-1])./2.0
 
 @testset "HarmonicBondLength_Slow " begin
-
     for (k, r0, Δr) in zip([10.0,20.0,30.0], [2.0,5.0, 8.0 ], [2.0, 3.0, 4.0])
 
         Test_Polymer_Model = SimulationParameters(  RosenbluthChains.HarmonicBondLength_Slow(k, r0, 2.0)
@@ -74,7 +73,6 @@ x = (bins[2:end].+bins[1:end-1])./2.0
         StatsBase.normalize(distances_hist, mode=:density)
         distances_hist =distances_hist.weights ./ sum(distances_hist.weights*(bins[2]-bins[1]))
         
-
         theory_hist = getTheoryhist(x, k, r0)
 
         fig = Plots.bar(x, radii_hist, label="radii")
@@ -84,7 +82,6 @@ x = (bins[2:end].+bins[1:end-1])./2.0
 
         @test ComputeKullbackLeiblerDivergence(radii_hist,theory_hist) <0.1
         @test ComputeKullbackLeiblerDivergence(distances_hist,theory_hist) <0.1
-
     end
 end
 
@@ -109,7 +106,6 @@ end
         distances_hist = fit(Histogram, distances, weights(Weights), bins)
         StatsBase.normalize(distances_hist, mode=:density)
         distances_hist =distances_hist.weights ./ sum(distances_hist.weights*(bins[2]-bins[1]))
-        
 
         theory_hist = getTheoryhist(x, k, r0)
 
@@ -119,7 +115,5 @@ end
 
         @test ComputeKullbackLeiblerDivergence(radii_hist,theory_hist) <0.1
         @test ComputeKullbackLeiblerDivergence(distances_hist,theory_hist) <0.1
-
-
     end
 end

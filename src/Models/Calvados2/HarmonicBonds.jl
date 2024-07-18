@@ -9,9 +9,6 @@ mutable struct HarmonicBondLength_Slow{T<:Real} <: RosenbluthChains.AbstractBond
     HarmonicBondLength_Slow(k ::T, r0::T, Δr::T) where {T<:Real} = new{T}(k, r0, Δr) ### constructs a Measurement 
 end
 
-
-
-
 @inline function SetTrialRadius(data::SimData, param::HarmonicBondLength_Slow)
     rand!(data.trial_radius, eltype(data.TType)) ### created NTrial many random number ∈ [0,1]
     data.trial_radius .*= 2.0*param.Δr ### ∈ [0, 2Δr]

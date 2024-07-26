@@ -16,12 +16,10 @@ function RosenbluthChains.MeasureAfterBatch(data::SimData, param::SimulationPara
 end
 
 function RosenbluthChains.MeasureAfterChainGrowth(data::SimData, param::SimulationParameters, Measurement::AMeasurement) 
-    #println(data.xyz)
     Measurement.REE[data.id_in_batch]    = norm(data.xyz[1]-data.xyz[end])
-    #println(norm(data.xyz[1]-data.xyz[end]))
-    #println(Measurement.REE[data.id_in_batch] )
+
     Measurement.Weight[data.id_in_batch] = getRosenbluthWeigth(data, param)
-    #println(data.RosenbluthWeight)
+    
     Measurement.SumRosenbluthWeights += data.RosenbluthWeight
 end
     

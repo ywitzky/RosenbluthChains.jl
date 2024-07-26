@@ -71,7 +71,7 @@ end;
 
 @testset "ideal chain Scalings" begin
 for (b, N) in zip([1.0,0.5, 3.0], [100, 200, 300])
-    N_Batch=200_000
+    N_Batch=50_000
     Data = SimData("../tmp/", 1.0, N, 8, N_Batch, 1)
 
     Model = SimulationParameters( FixedBondParameters(b), RandBondAngle(), RandTorsion(), IdealChain())

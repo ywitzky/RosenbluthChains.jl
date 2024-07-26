@@ -18,12 +18,15 @@ struct Debye_Ashbaugh_Hatch{T<:Real} <: AbstractSelfAvoidanceParameters
 
         σ_mean = zeros(T, (length(Sequence),length(Sequence)))
         λ_mean = zeros(T, (length(Sequence),length(Sequence)))
+        q = [TypeToCharge[type] for type in Sequence]
+        q[1]+=1.0
+        q[end] += -1.0
         qq = zeros(T, (length(Sequence),length(Sequence)))
         for (id,type) in enumerate(Types)
             for (id2,type2) in enumerate(Types)
                 σ_mean[id, id2] = (TypeToSigma[type]+TypeToSigma[type2])/2.0
                 λ_mean[id, id2] = (TypeToLambda[type]+TypeToLambda[type2])/2.0
-                qq[id, id2] = TypeToCharge[type]*TypeToCharge[type2]
+                qq[id, id2] = q[id]*q[id2]
             end
         end
 
@@ -32,7 +35,7 @@ struct Debye_Ashbaugh_Hatch{T<:Real} <: AbstractSelfAvoidanceParameters
 
         λu_cut  = λ_mean.*ulj.(ϵ_ah_l, σ_mean, rc_ah)
         ah_shift = @.ϵ_ah_l*(1-λ_mean)
-        sqr_cutoffs = 2.0^(1.0/6.0).*σ_mean
+        σ_cutoffs = 2.0^(1.0/6.0).*σ_mean
 
         ### compute exponents by hand to avoid float effects
         Temp = 298.0*rel_Temp
@@ -48,7 +51,7 @@ struct Debye_Ashbaugh_Hatch{T<:Real} <: AbstractSelfAvoidanceParameters
 
         qq .*= e^2/(4*π*ϵ0*ϵ_rdeb*(kt*rel_Temp))*10^5 ### correct to Angstroem
 
-        return new{T}(4*ϵ_ah_l,λ_mean,sqr_cutoffs.^2, σ_mean.^2, rc_ah^2, λu_cut, ah_shift, rc_deb^2, qq, D)
+        return new{T}(4*ϵ_ah_l,λ_mean,σ_cutoffs.^2, σ_mean.^2, rc_ah^2, λu_cut, ah_shift, rc_deb^2, qq, D)
     end
 end
 
@@ -61,7 +64,6 @@ end
 ### we aim at SIMD operations for all trial positions
 @inline function GetTrialBoltzmannWeight(data::SimData,param::Debye_Ashbaugh_Hatch)
     fill!(data.tmp4, 0.0) ### saves energy for every test position  
-
     for id in 1:data.id-2
         for tid in 1:data.NTrials
             data.btmp[tid] = sqr_norm(data.trial_positions[tid]-data.xyz[id]) ### square distance
@@ -77,7 +79,7 @@ end
         ### compute the ashbaugh hatch potential
         if any(data.btmp3.!=0.0) ### skip all computations if no distance is smaller than largest cutof
             data.tmp5 .= param.ah_sqr_cutoffs[id, data.id].>data.btmp ### mask for cutoff 2^(1/6)*σ, 0 if larger than cutoff
-            data.btmp2 .= (param.ah_rcut_sqr.> data.btmp).-data.tmp5 ### mask for cutoff r in [2^(1/^)*σ, ah_rc], 0 else
+            data.btmp2 .= (param.ah_rcut_sqr.> data.btmp).-data.tmp5 ### mask for cutoff r in [2^(1/6)*σ, ah_rc], 0 else
      
             data.btmp .= param.ah_σ_sqr_mean[id, data.id]./data.btmp ### ^2
             data.btmp .= data.btmp.*data.btmp.*data.btmp ### ^6

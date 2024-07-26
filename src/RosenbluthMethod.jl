@@ -65,7 +65,7 @@ function SetFirstThreeBeads(data::SimData, param::SimulationParameters)
     
     ### place second bead somewhere in spherical coordinates
     φ = _rand(eltype(data.TType)(2*π) )
-    θ = acos(_rand_off(2.0, -1.0))   ### azimuth angle to dont oversample the poles.
+    θ = acos(_rand_off(2.0, -1.0))   ### polar angle to dont oversample the poles.
     
     data.xyz[2][1]=  data.trial_radius[data.tid]*sin(θ)*cos(φ)
     data.xyz[2][2]=  data.trial_radius[data.tid]*sin(θ)*sin(φ)
@@ -83,7 +83,7 @@ function SetFirstThreeBeads(data::SimData, param::SimulationParameters)
     data.crossproduct[3] = 0.0 
     
     data.current .= data.xyz[2]
-   
+
     ComputeTrialPositions(data,param)
     ChooseTrialPosition(data, param)
     data.xyz[3] .= data.trial_positions[data.tid]
@@ -91,7 +91,6 @@ function SetFirstThreeBeads(data::SimData, param::SimulationParameters)
     data.tmp1 .= data.xyz[3].-data.xyz[2]
     ×(data.xyz[2]-data.xyz[1],data.tmp1,data.crossproduct)
     data.current .= data.tmp1
-
     data.id+=1
 end
 
@@ -123,7 +122,6 @@ function ComputeBeadsIteratively(data::SimData, param::SimulationParameters)
 
     end
 end
-
 
 
 function CalcRotationMatrix(out_vec::Vector3{T},angle::T, data::SimData, param::SimulationParameters) where {T<:Real}

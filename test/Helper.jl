@@ -4,18 +4,26 @@ function ComputeKullbackLeiblerDivergence(P,Q)
     return sum([p*log(p/q) for (p,q) in zip(P,Q) if p>0 ])
 end
 
-function ComputeMeanError(data::Vector{R}, Weights::Vector{R}, NIntervals = 10) where {R<:Real}
-    subinvertals  = collect(partition(1:length(data), ceil(Int32,length(data)/NIntervals)))
+function ComputeMeanError(data::Vector{R}, Weights::Vector{R}; NIntervals = 10) where {R<:Real}
+    subinvertals  = collect(partition(1:length(data), floor(Int32,length(data)/Float32(NIntervals))))[1:end-1]
     avg = sqrt(sum(data.*Weights)/sum(Weights))
 
-    avg_array = [ sqrt(sum(data[interval].*Weights[interval])/sum(Weights[interval]))  for interval in subinvertals]
+    sub_Weights = [sum(Weights[interval]) for interval in subinvertals]
 
-    error = sqrt(sum((avg.-avg_array).^2))/NIntervals
+    avg_array = [ sqrt(sum(data[interval].*Weights[interval])/sub_Weights[id])  for (id,interval) in enumerate(subinvertals)]
+
+    neff = sum(sub_Weights)^2/(sum(sub_Weights.^2))
+
+    error = sqrt(sum((avg.-avg_array).^2 .*sub_Weights)/(sum(sub_Weights)*(neff-1)))
 
     return avg, error
 end
 
-
+function PlotsWeightHistorgam(Weigths, path::String, limits=-8:0.1:0)
+    b = 10.0 .^ (limits)
+    fig = Plots.histogram(Result.Weights; bin=b, xscale=:log10, yscale=:identity,  xlim=extrema(b), ylabel="Weights")
+    Plots.savefig(fig, path)
+end
 
 mutable struct RG_Measurement{T<:Real} <: AbstractMeasurement 
     RGs::Vector{T}

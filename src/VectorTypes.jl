@@ -5,6 +5,7 @@ const Matrix3{T} = MArray{Tuple{3,3},T}
 export norm, sqr_norm, angle, Vector3, Matrix3, ×, *, torsion
 
 @inline sqr_norm(vec::Vector3{T})  where {T<:Real} = vec[1]*vec[1]+vec[2]*vec[2]+vec[3]*vec[3]
+
 @inline norm(vec::Vector3{T}) where {T<:Real} = sqrt(vec[1]*vec[1]+vec[2]*vec[2]+vec[3]*vec[3])
 
 Vector{Vector3{T}}(N::I) where {I<:Integer, T<:Number} = [Vector3{T}(0,0,0) for _ in 1:N]
@@ -21,9 +22,9 @@ Matrix3{T}() where {T<:Real} =  Matrix3{T}(zeros(T,3,3))
 end
 
 @inline function -( a::Vector3{T},b::Vector3{T}, c::Vector3{T}) where{T<:Real}
-    c[1] =a[1]-b[1]
-    c[2] =a[2]-b[2]
-    c[3] =a[3]-b[3]
+    @inbounds c[1] =a[1]-b[1]
+    @inbounds c[2] =a[2]-b[2]
+    @inbounds c[3] =a[3]-b[3]
     nothing
 end
 

@@ -1,5 +1,7 @@
 export Debye_Ashbaugh_Hatch
 
+using LoopVectorization
+
 ### combines Debye potential and ashbaugh hatch potential
 struct Debye_Ashbaugh_Hatch{T<:Real} <: AbstractSelfAvoidanceParameters
     ah_ϵ::T #### saved as 4*epsilon
@@ -68,30 +70,37 @@ end
         for tid in 1:data.NTrials
             data.btmp[tid] = sqr_norm(data.trial_positions[tid]-data.xyz[id]) ### square distance
         end
-        data.btmp3 .= param.deb_rcut_sqr.>data.btmp ### mask for debye cutoff
+        LoopVectorization.@avx data.btmp3 .= param.deb_rcut_sqr.>data.btmp ### mask for debye cutoff
 
-        ### compute the debye potential
-        if param.deb_qq[id, data.id] != 0.0
-            data.tmp5 .= sqrt.(data.btmp) # r
-            data.tmp4 .+= data.btmp3 .* (param.deb_qq[id, data.id] .*exp.(-data.tmp5./param.deb_D)./data.tmp5 ) 
-        end
+        if (LoopVectorization.@avx sum(data.btmp3))>0
+        #if any(data.btmp3.!=0.0) ### skip all computations if no distance is smaller than largest cutoff
 
-        ### compute the ashbaugh hatch potential
-        if any(data.btmp3.!=0.0) ### skip all computations if no distance is smaller than largest cutof
-            data.tmp5 .= param.ah_sqr_cutoffs[id, data.id].>data.btmp ### mask for cutoff 2^(1/6)*σ, 0 if larger than cutoff
-            data.btmp2 .= (param.ah_rcut_sqr.> data.btmp).-data.tmp5 ### mask for cutoff r in [2^(1/6)*σ, ah_rc], 0 else
-     
-            data.btmp .= param.ah_σ_sqr_mean[id, data.id]./data.btmp ### ^2
-            data.btmp .= data.btmp.*data.btmp.*data.btmp ### ^6
-            data.btmp .= param.ah_ϵ .*(data.btmp.*data.btmp .-data.btmp) ### U_LJ(r), ϵ is actually 4*ϵ
+            ### compute the debye potential
+            if param.deb_qq[id, data.id] != 0.0
+                LoopVectorization.@avx data.tmp5 .= sqrt.(data.btmp) # r
+                LoopVectorization.@avx data.tmp4 .+= data.btmp3 .* (param.deb_qq[id, data.id] .*exp.(-data.tmp5./param.deb_D)./data.tmp5 ) 
+            end
 
-            data.tmp4 .+= data.tmp5.* (data.btmp.- param.ah_λu_cut[id, data.id] .+ param.ah_shift[id, data.id]) ### add everything smaller r<2^(1/6)σ
-            
-            data.tmp4 .+=  data.btmp2 .* (data.btmp.*param.ah_λ[id, data.id] .- param.ah_λu_cut[id, data.id] ) ### add everything in [2^(1/^)*σ, ah_rc],
+            ### compute the ashbaugh hatch potential
+            LoopVectorization.@avx data.btmp2 .= ( data.btmp.<param.ah_rcut_sqr)### mask for cutoff r in [0, ah_rc], 0 else
+            if (LoopVectorization.@avx sum(data.btmp2))>0 
+                #if any(data.btmp3.!=0.0) ### skip all computations if no distance is smaller than largest cutof 
+
+                LoopVectorization.@avx data.tmp5 .= param.ah_sqr_cutoffs[id, data.id].>data.btmp ### mask for cutoff 2^(1/6)*σ, 0 if larger than cutoff
+                LoopVectorization.@avx data.btmp2 .-=data.tmp5 ### mask for cutoff r in [2^(1/^6)*σ, ah_rc], 0 else
+        
+                LoopVectorization.@avx data.btmp .= param.ah_σ_sqr_mean[id, data.id]./data.btmp ### ^2
+                LoopVectorization.@avx data.btmp .= data.btmp.*data.btmp.*data.btmp ### ^6
+                LoopVectorization.@avx data.btmp .= param.ah_ϵ .*(data.btmp.*data.btmp .-data.btmp) ### U_LJ(r), ϵ is actually 4*ϵ
+
+                LoopVectorization.@avx data.tmp4 .+= data.tmp5.* (data.btmp.- param.ah_λu_cut[id, data.id] .+ param.ah_shift[id, data.id]) ### add everything smaller r<2^(1/6)σ
+                
+                LoopVectorization.@avx data.tmp4 .+=  data.btmp2 .* (data.btmp.*param.ah_λ[id, data.id] .- param.ah_λu_cut[id, data.id] ) ### add everything in [2^(1/^)*σ, ah_rc],
+            end
         end
         
     end
-    data.LogBoltzmannFaktor .-=  data.tmp4
+    LoopVectorization.@avx  data.LogBoltzmannFaktor .-=  data.tmp4
     nothing
 end
 

@@ -23,14 +23,14 @@ end
 function AshbaughHatch(r, σ1, σ2,λ1, λ2, ϵ, rcut, rel_T)
     σ=(σ1+σ2)/2.0
     λ=(λ1+λ2)/2.0
-    ϵ /= rel_T
+    ϵn = ϵ/ rel_T
     if r > rcut
         return 0
     else
         if r< 2^(1/6)*σ
-            return LJ(r, σ, ϵ)-λ*LJ(rcut, σ, ϵ)+ϵ*(1-λ)
+            return LJ(r, σ, ϵn)-λ*LJ(rcut, σ, ϵn)+ϵn*(1-λ)
         else
-            return λ*(LJ(r, σ, ϵ)-LJ(rcut, σ, ϵ))
+            return λ*(LJ(r, σ, ϵn)-LJ(rcut, σ, ϵn))
         end
     end
 end
@@ -61,16 +61,13 @@ e = 1.602 # 10-19 C
 ### 1-2 interactions are turned of, only amino acids 1 and 3 matter
 @testset "Debye_Ashbaught_Hatch Potential" begin
     for (cnt,(Sequence, pH, rel_T, cs_deb)) in enumerate(zip(["FFF","HHH", "MMA", "KEE"], [6.0, 6.5, 7., 8.0], [0.8, 0.9, 1.0, 1.1], [0.15, 0.2, 0.25, 0.3]))
-    #println("\n")
-    #println(Sequence)
+
     OneToCharge['H'] = 1. / ( 1.0 + 10.0^(pH-6) ) ### HIS is pH-Dependent for calvados2
     ϵr_deb = er(298.0*rel_T)
-    #println("er out: $(ϵr_deb)")
+
     B = e^2/(4*π*ϵ0*ϵr_deb*kt*rel_T)#*10^-5m ### in Angstroem
     D = sqrt(1.0/(8.0*π*B*cs_deb*NA)) *10^1 *10^10### convert to Angstroem
 
-    #println("λ_out $((OneToLambda[Sequence[1]]+OneToLambda[Sequence[3]])/2.0)")
-    #println("D out: $(D)")
     ϵ_ah_l = deepcopy(ϵ_ah)
 
     Model = SimulationParameters( FixedBondParameters(3.8), RandBondAngle(), RandTorsion(), Debye_Ashbaugh_Hatch(deepcopy(Sequence), OneToSigma, OneToLambda, ϵ_ah_l, rc_ah, OneToCharge, rc_deb, cs_deb, rel_T))
@@ -88,7 +85,7 @@ e = 1.602 # 10-19 C
 
     RosenbluthChains.GetTrialBoltzmannWeight(Data,Model.SAWParam)
     fig=plot(x, -Data.LogBoltzmannFaktor, label="Sim result")
-    theory = (AshbaughHatch.(x, OneToSigma[Sequence[1]], OneToSigma[Sequence[3]],OneToLambda[Sequence[1]], OneToLambda[Sequence[3]], ϵ_ah_l, rc_ah, rel_T) .+ Debye.(x, D,OneToCharge[Sequence[1]],OneToCharge[Sequence[3]], ϵr_deb,rel_T, rc_deb))
+    theory = (AshbaughHatch.(x, OneToSigma[Sequence[1]], OneToSigma[Sequence[3]],OneToLambda[Sequence[1]], OneToLambda[Sequence[3]], ϵ_ah_l, rc_ah, rel_T) .+ Debye.(x, D,OneToCharge[Sequence[1]]+1.0,OneToCharge[Sequence[3]]-1.0, ϵr_deb,rel_T, rc_deb))
 
     plot!(x,theory, label="theory", linestyle=:dot)
     savefig(fig, "./tmp/Debye_Ashbaugh_Hatch_Pot_$(Sequence)_pH$(pH)_$(298.0*rel_T)K_$(cs_deb).pdf")

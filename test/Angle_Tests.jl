@@ -105,7 +105,7 @@ for (b, N) in zip([1.0,0.5, 3.0], [100, 200, 300])
     @test ComputeKullbackLeiblerDivergence(REE_hist,theory_hist) <0.1
 
 
-    @test (RG_exp - RG_avg)<2.5*RG_exp
-    @test (REE_exp - REE_avg)<2.5*REE_exp
+    @test (RG_exp - RG_avg)<2.5*RG_err
+    @test (REE_exp - REE_avg)<2.5*REE_err
 end
 end

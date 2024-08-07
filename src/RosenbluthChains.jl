@@ -11,6 +11,7 @@ include("./MMapOutput.jl")
 include("./RandomNumberFuncs.jl")
 include("./RosenbluthMethod.jl")
 include("./SpecificModels.jl")
+include("./PERM.jl")
 
 include("./Models/Cosine_BondAngels.jl")
 include("./Models/LJ_Repulsion.jl")

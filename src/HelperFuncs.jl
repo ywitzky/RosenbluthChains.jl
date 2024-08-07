@@ -27,11 +27,12 @@ end
 
 @inline function CompTrigonometricTrialBondAngles(data::SimData)
     data.cos_trial_angle .= cos.(data.trial_angle)
-    data.sin_trial_angle .= @. √(1-data.cos_trial_angle^2)
+    data.sin_trial_angle .=  @. sign(data.trial_angle-π).*  √(1-data.cos_trial_angle^2) ## #only works on interval [0, 2π]@.  √(1-data.cos_trial_angle^2)
     nothing
 end
+
 @inline function CompTrigonometricTrialTorsionAngles(data::SimData)
     data.cos_trial_torsion_angle .= cos.(data.trial_torsion_angle)
-    data.sin_trial_torsion_angle .= @. √(1-data.cos_trial_torsion_angle^2)
+    data.sin_trial_torsion_angle .= @. sign(data.trial_torsion_angle-π).* √(1-data.cos_trial_torsion_angle^2) #only works on interval [0, 2π]  #@. √(1-data.cos_trial_torsion_angle^2)
     nothing
 end

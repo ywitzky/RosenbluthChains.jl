@@ -1,5 +1,7 @@
 export SimulationParameters , InitMeasurement, MeasureAfterChainGrowthMeasureAfterBatch, SaveMeasurements, AbstractMeasurement, ChooseTrialPosition, clear
 
+abstract type AbstractPERMData end
+
 abstract type AbstractBondParam end
 
 abstract type AbstractBondAngleParam end
@@ -9,6 +11,11 @@ abstract type AbstractTorsionAngleParam end
 abstract type AbstractSelfAvoidanceParameters end
 
 abstract type AbstractMeasurement end
+
+struct NoPERM <:AbstractPERMData ### turns perm off 
+    Measure::Bool
+    NoPERM() = new(false)
+end 
 
 
 struct SimulationParameters{T<:Real, I<:Integer}
@@ -77,7 +84,10 @@ function ChooseTrialPosition(data::SimData,param::SimulationParameters)
     data.tid = findfirst(x->x>=rnd_num, data.tmp4) 
     #data.LogRosenbluthWeight+= sum(data.LogBoltzmannFaktor)
     data.btmp .=exp.(data.LogBoltzmannFaktor)
+    
     data.RosenbluthWeight *= sum(   data.btmp)/data.NTrials
+
+
     #println(data.LogBoltzmannFaktor)
     #println(data.RosenbluthWeight, "  ",sum(   data.btmp)/data.NTrials )
     nothing

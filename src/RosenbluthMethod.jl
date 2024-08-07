@@ -2,31 +2,29 @@ using ProgressMeter
 
 export RunSim, getRosenbluthWeigth
 
-function RunSim(data::SimData, param::SimulationParameters, TmpMeas::AbstractMeasurement) 
+function RunSim(data::SimData, param::SimulationParameters, TmpMeas::AbstractMeasurement, PERM=NoPERM()) 
     InitSimParam(data, param)
     Measurements = InitMeasurement(data, param, TmpMeas)
 
     ### Computational Part
-    mainLoop(data, param, Measurements)
+    mainLoop(data, param, Measurements, PERM)
 
     ### Write Out
     SaveMeasurements(data, param, Measurements)
     return Measurements
 end
 
-function mainLoop( data::SimData, param::SimulationParameters, Measurement::AbstractMeasurement)#    ::Dict{String, Array{T}}, LA_Obj::LA.SimData{T2, N}) where {T<:Real, N<:Integer, T2<:Real}
+function mainLoop( data::SimData, param::SimulationParameters, Measurement::AbstractMeasurement, perm::NoPERM)#    ::Dict{String, Array{T}}, LA_Obj::LA.SimData{T2, N}) where {T<:Real, N<:Integer, T2<:Real}
 
     for data.batch_id in 0:data.NumberOfBatches-1
         #println("Batch $(data.batch_id+1) /$(data.NumberOfBatches)")
         @showprogress 1 "Computing batch $(data.batch_id+1)" for data.id_in_batch in 1:data.BatchSize#, printing_delay=0.1
             ResetSim(data, param)
             SetFirstThreeBeads(data, param)
-            ComputeBeadsIteratively(data,param)
+            ComputeBeadsIteratively(data,param, perm)
             MeasureAfterChainGrowth(data, param,Measurement)
-            #CopyXYZToLA(data,param, LA_Obj,i)
         end
         MeasureAfterBatch(data, param, Measurement)
-        #DoBatchMeasurements(data, param, Measurements, LA_Obj, I)
     end
 end
 
@@ -95,7 +93,7 @@ function SetFirstThreeBeads(data::SimData, param::SimulationParameters)
     data.id+=1
 end
 
-function ComputeBeadsIteratively(data::SimData, param::SimulationParameters)
+function ComputeBeadsIteratively(data::SimData, param::SimulationParameters, perm::AbstractPERMData)
     while(data.id<=data.NBeads)
         SetTrialRadius(data, param)
         SetTrialBondAngle(data, param)
@@ -104,7 +102,7 @@ function ComputeBeadsIteratively(data::SimData, param::SimulationParameters)
 
         #CalculateExternalPotential(data, param);
 
-        ChooseTrialPosition(data, param)
+        ChooseTrialPosition(data, param, perm)
         
 
         data.xyz[data.id] .= data.trial_positions[data.tid]

@@ -15,5 +15,6 @@ include("./PERM.jl")
 
 include("./Models/Cosine_BondAngels.jl")
 include("./Models/LJ_Repulsion.jl")
+include("./Models/Calvados2/Calvados2.jl")
 
 end # module RosenbluthChains

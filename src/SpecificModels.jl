@@ -37,14 +37,12 @@ struct SAWParameters{T<:Real, I<:Integer} <: AbstractSelfAvoidanceParameters
 end
 
 @inline function SetTrialTorsionAngle(data::SimData, param::RandTorsion)
-    # data.trial_torsion_angle .= 
    rand!(data.trial_torsion_angle, eltype(data.TType))
    data.trial_torsion_angle.*= (eltype(data.TType))(2.0*π)
    CompTrigonometricTrialTorsionAngles(data)
 end
 
 @inline function SetTrialBondAngle(data::SimData, param::RandBondAngle)
-    # data.trial_torsion_angle .= 
    rand!(data.trial_angle, eltype(data.TType))
    data.trial_angle .= @.   acos(2.0*data.trial_angle-1)
 

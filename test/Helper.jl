@@ -60,6 +60,13 @@ function RosenbluthChains.MeasureAfterChainGrowth(data::SimData, param::Simulati
     Measurement.RGs[data.id_in_batch] = sum(Measurement.Masses.*sqr_norm.([pos-com for pos in data.xyz]))/Measurement.M_Total
     Measurement.REEs[data.id_in_batch] = sqr_norm(data.xyz[end]-data.xyz[1])
     Measurement.Weights[data.id_in_batch] =  getRosenbluthWeigth(data, param)
+
+
+#=
+    if isinf(Measurement.Weights[data.id_in_batch])
+        println("data.id_in_batch $(data.id_in_batch)")
+    end=#
+
 end
 
 RosenbluthChains.MeasureAfterBatch(data::SimData, param::SimulationParameters, Measurement::RG_Measurement) = nothing

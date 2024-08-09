@@ -1,11 +1,11 @@
 using Plots
 
-include("./HarmonicBonds_Test.jl")
-include("./Debye_Ashbaught_Hatch_Test.jl")
+#include("./HarmonicBonds_Test.jl")
+#include("./Debye_Ashbaught_Hatch_Test.jl")
 
 ### data.txt was taken from https://github.com/KULL-Centre/papers/blob/main/2022/CG-cutoffs-Tesei-et-al/SC/05_24_20/1_init_proteinsRgs.pkl and contains the data used to create figure 7 in the original calvados2 paper
 
-NTests= 8 #67
+NTests= 1#67
 
 file = open("./Calvados2/Calvados2_05_24_20.csv", "r")
 lines = readlines(file)
@@ -50,6 +50,8 @@ println("Only the $(NTests) shortest proteins are compared to the results in the
 Intervals = collect(5:500)
 RGs_bl = zeros(length(Intervals))
 RG_Errs = zeros(length(Intervals))
+
+
 @testset "Calvados2 Model" begin
     for i in 1:NTests
         N_Trial = 48
@@ -68,6 +70,11 @@ RG_Errs = zeros(length(Intervals))
         Result.Weights ./= maximum(Result.Weights)
         Total_Weights = sum(Result.Weights)
 
+        ### thats how they compute it in Calvados2 papaer
+        #https://github.com/KULL-Centre/papers/blob/main/2022/CG-cutoffs-Tesei-et-al/SC/code/analyse.py
+        Result.RGs = sqrt.(Result.RGs)
+        Result.REEs = sqrt.(Result.REEs)
+
         RG_avg, RG_err = ComputeMeanError(Result.RGs, Result.Weights; NIntervals=100)
 
         for (ind, inter) in enumerate(Intervals)
@@ -85,6 +92,65 @@ RG_Errs = zeros(length(Intervals))
         b = 10.0 .^ (-8:0.1:0)
         fig = Plots.histogram(Result.Weights; bin=b, xscale=:log10, yscale=:identity,  xlim=extrema(b), ylabel="Weights")
         Plots.savefig(fig, "./tmp/Calvados2_$(Names[i])_Weights_$N_Trial.pdf")
+
+        ### @TODO trim the tests to smaller size
+    end
+end
+
+N_Batch = 10_000
+NTests = 1
+@testset "PERM: Calvados2 Model" begin
+    for i in 1:NTests
+        N_Trial = 32
+        Data = SimData("../tmp/", 1.0,N[i], N_Trial, N_Batch, 1)
+
+        Calvados2_Model = Calvados2(Sequences[i],Temp[i]; OneToLambda=OneToLambda_05_24_20, SaltConcentration=Salt[i], pH=pH[i])
+        
+        ### according to https://github.com/KULL-Centre/papers/blob/main/2022/CG-cutoffs-Tesei-et-al/SC/code/analyse.py in def calcRG
+        Masses = [AaToWeight[c] for c in Sequences[i]] 
+        Masses[1] += 2.0
+        Masses[end] += 16.0
+
+        val = 5.0
+        ratio = 100.0
+        PERM = PermData(N[i];K=4, cMax=val, cMin=val/ratio, PreAverage=10_000)
+ 
+        Result = RunSim(Data, Calvados2_Model, RG_Measurement(N_Batch,Masses ), PERM)
+
+        println("RGs: $(Result.RGs[end-10:end])")
+
+        println("Weight: $(Result.Weights[end-10:end])")
+        println("max: $(maximum(Result.Weights))")
+
+        ### numerical stability
+        Result.Weights ./= maximum(Result.Weights)
+        Total_Weights = sum(Result.Weights)
+
+
+        ### do same computation as in calvados2 paper
+        Result.RGs = sqrt.(Result.RGs)
+
+        RG_avg, RG_err = ComputeMeanError(Result.RGs, Result.Weights; NIntervals=100)
+
+        for (ind, inter) in enumerate(Intervals)
+            RGs_bl[ind], RG_Errs[ind] = ComputeMeanError(Result.RGs, Result.Weights; NIntervals=inter)
+        end
+
+        println("Name: $(Names[i])")
+        println("RG: $RG_avg±$RG_err ,  Calvados2: $(RGs[i])\n")
+
+        println("unique $(PERM.Total_Grown) vs. $(N_Batch)")
+        println("prune $(PERM.TotalPrune) vs. $(PERM.TotalEnrich)")
+        println("\n\n\n\n")
+
+        @test abs(RGs[i] - RG_avg)< (2.5*RG_err) ||  abs(RGs[i] - RG_avg) < RGs[i]*0.025    ###  unlikely to be outside of this margin + error in their measurements
+
+        fig = Plots.plot(Intervals, RG_Errs, ylabel="estimated error")
+        Plots.savefig(fig, "./tmp/Calvados2_Errorblock_$(Names[i])_$N_Trial.pdf")
+
+        b = 10.0 .^ (-8:0.1:0)
+        fig = Plots.histogram(Result.Weights; bin=b, xscale=:log10, yscale=:identity,  xlim=extrema(b), ylabel="Weights")
+        Plots.savefig(fig, "./tmp/PERM_Calvados2_$(Names[i])_Weights_$N_Trial.pdf")
 
         ### @TODO trim the tests to smaller size
     end

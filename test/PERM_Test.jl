@@ -66,8 +66,6 @@ LJ(r,σ, ϵ) =  r < 2^(1.0/6.0)*σ ? 4*ϵ*((σ/r)^12-(σ/r)^6)  + ϵ : 0.0
 REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
 
 @testset "PERM: LJ Potential SAW Scaling" begin
-
-   
     N_Trial=24
     N_Batch=500 #100_000
     #N=100
@@ -85,11 +83,6 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
         Result = RunSim(Data,KP, RG_Measurement(N_Batch, ones(N)), PERM);
 
         PlotsWeightHistorgam(Result.Weights,"./tmp/PERM_LJ_Weights_$(N)",collect(-2:0.1:3.0))
-
-        #=
-        println("Max: $(maximum(Result.Weights[1:200]))")
-        println("W: $(Result.Weights[1:20])")
-        println("W: $(Result.Weights[end-20:end])")=#
 
         println("unique $(PERM.Total_Grown) vs. $(N_Batch)")
         println("prune $(PERM.TotalPrune) vs. $(PERM.TotalEnrich)")
@@ -120,7 +113,6 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
     @test 0.58 < ν_fit+3.0*Δν && 0.58 > ν_fit-3.0*Δν && Δν<0.10
 
     println("ν= $(ν_fit)±$(Δν) vs. 0.58...")
-    
 end;
 
 

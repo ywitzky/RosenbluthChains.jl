@@ -14,7 +14,7 @@ function RunSim(data::SimData, param::SimulationParameters, TmpMeas::AbstractMea
     return Measurements
 end
 
-function mainLoop( data::SimData, param::SimulationParameters, Measurement::AbstractMeasurement, perm::NoPERM)#    ::Dict{String, Array{T}}, LA_Obj::LA.SimData{T2, N}) where {T<:Real, N<:Integer, T2<:Real}
+function mainLoop( data::SimData, param::SimulationParameters, Measurement::AbstractMeasurement, perm::NoPERM)
 
     for data.batch_id in 0:data.NumberOfBatches-1
         #println("Batch $(data.batch_id+1) /$(data.NumberOfBatches)")
@@ -44,7 +44,7 @@ function ComputeTrialPositions(data::SimData, param::SimulationParameters)
 end
 
 function getRosenbluthWeigth(data::SimData, param::SimulationParameters)
-    return data.RosenbluthWeight # = exp(data.LogRosenbluthWeight) # exp(BigFloat(data.LogRosenbluthWeight))
+    return deepcopy(data.RosenbluthWeight) # = exp(data.LogRosenbluthWeight) # exp(BigFloat(data.LogRosenbluthWeight))
 end
 
 function ResetSim(data::SimData, param::SimulationParameters)
@@ -104,7 +104,6 @@ function ComputeBeadsIteratively(data::SimData, param::SimulationParameters, per
         ChooseTrialPosition(data, param, perm)
         
 
-        data.xyz[data.id] .= data.trial_positions[data.tid]
         if any(isnan.(data.xyz[data.id]))
             println(data.tid, "  ", data.id)
             println("trial angle $(data.trial_angle), \ncos $(data.cos_trial_angle) \nsin $(data.sin_trial_angle) \n test:$(data.sin_trial_angle.^2 .+ data.cos_trial_angle.^2)")

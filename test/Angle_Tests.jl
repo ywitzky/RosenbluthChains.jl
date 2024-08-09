@@ -82,12 +82,15 @@ for (b, N) in zip([1.0,0.5, 3.0], [100, 200, 300])
     Result.Weights ./= maximum(Result.Weights)
     Total_Weights = sum(Result.Weights)
 
-    RG_avg, RG_err = ComputeMeanError(Result.RGs, Result.Weights)
-    REE_avg, REE_err = ComputeMeanError(Result.REEs, Result.Weights)
+    RG_avg, RG_err = ComputeSqrtMeanError(Result.RGs, Result.Weights)
+    REE_avg, REE_err = ComputeSqrtMeanError(Result.REEs, Result.Weights)
+
+
 
     RG_exp = sqrt(b^2*N/6.0)
     REE_exp = sqrt(b^2*N)
 
+    Result.RGs .= sqrt.( Result.RGs)
     Result.REEs .= sqrt.( Result.REEs)
     bins = collect(0:1:ceil(Int32,maximum(Result.REEs)))
 
@@ -104,6 +107,8 @@ for (b, N) in zip([1.0,0.5, 3.0], [100, 200, 300])
     savefig(fig, "./tmp/IdealChainGyrationradius_$(b)_$(N).pdf")
     @test ComputeKullbackLeiblerDivergence(REE_hist,theory_hist) <0.1
 
+    println("RG $(RG_avg) ± $(RG_exp)")
+    println("REE $(REE_avg) ± $(REE_exp)")
 
     @test (RG_exp - RG_avg)<2.5*RG_exp
     @test (REE_exp - REE_avg)<2.5*REE_exp

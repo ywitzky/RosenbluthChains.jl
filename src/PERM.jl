@@ -142,7 +142,7 @@ end
 
     ChooseTrialPosition(data, param) ### normaly choose position out of trial positions
 
-    rel_weight  = data.RosenbluthWeight/data.id### weight per Residue
+    rel_weight  = data.RosenbluthWeight/data.id ### weight per Residue
     if data.RosenbluthWeight< perm.MinWeight[data.id]
         if rand() < 1/perm.K
             prune(data, param, perm)
@@ -171,18 +171,16 @@ end
             perm.μ = perm.μ + (val - perm.μ)/NMeasured
             perm.σ_sqr +=val^2
 
-            if data.RosenbluthWeight==0
-                println("Bla: NMeasured: $(NMeasured)")
-            end
+
             #perm.Z_Min = min(perm.Z_Min, data.RosenbluthWeight)
         end
         if NMeasured == perm.PreAverage
             ### assume that we have a log gaussian distribution
 
             σ = √(perm.σ_sqr/perm.PreAverage - perm.μ^2) 
-            println("μ $(perm.μ) ± $(σ)")
-            perm.cMaxWeight = 10^(2.0*σ  )#10^(perm.μ+5*σ)
-            perm.cMinWeight = 10^(-1.5*σ ) #perm.μ-0.5*σ)
+            #println("μ $(perm.μ) ± $(σ)")
+            perm.cMaxWeight = 10^(1.5*σ  ) ### 85 % of chains are kept normal
+            perm.cMinWeight = 10^(-1.5*σ ) 
   
             range= data.NBeads./collect(1:data.NBeads)
 
@@ -192,7 +190,7 @@ end
             perm.MinWeight = @. tmp.*  10^(-2*σ/range) # perm.cMinWeight./range#/perm.Z[1]
 
 
-            println("min/max = $(perm.cMinWeight) $(perm.cMaxWeight) , ratio: $(perm.cMaxWeight/perm.cMinWeight)")
+            #println("min/max = $(perm.cMinWeight) $(perm.cMaxWeight) , ratio: $(perm.cMaxWeight/perm.cMinWeight)")
         end
 
         if NMeasured > perm.PreAverage ### start updating after one chain is grown

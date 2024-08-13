@@ -1,6 +1,6 @@
 export Cosine_BondAngles, SetTrialBondAngle, GaussianLp_Cosine_BondAngles, GaussianInvLp_Cosine_BondAngles, GaussianK_Cosine_BondAngles
 
-using  Distributions, Interpolations
+using  Distributions, Interpolations, Distributions
 
 
 
@@ -102,7 +102,7 @@ struct Cosine_BondAngle_Prefactor_Sampler{I<:Int, T<: Real} <: Sampleable{Univar
         K_width= K_borders[2]-K_borders[1]
 
         #K_mean = (K_borders[2:end].+K_borders[1:end-1])/2.0
-        K_cdf = cdf.(Normal(μ, σ), K_borders[2:end]).-cdf(Normal(μ,σ), μ-width*σ)
+        K_cdf = Distributions.cdf.(Normal(μ, σ), K_borders[2:end]).-Distributions.cdf(Normal(μ,σ), μ-width*σ)
         K_max  = [max(pdf(Normal(μ, σ),K_borders[i]), pdf(Normal(μ, σ),K_borders[i+1]) ) for i in 1:NK]
         K_ind =  findfirst(μ.<=K_borders) -1
         K_max[K_ind] = max(pdf(Normal(μ, σ),μ), K_max[K_ind])

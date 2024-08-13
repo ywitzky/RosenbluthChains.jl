@@ -17,8 +17,7 @@ end
 function mainLoop( data::SimData, param::SimulationParameters, Measurement::AbstractMeasurement, perm::NoPERM)
 
     for data.batch_id in 0:data.NumberOfBatches-1
-        #println("Batch $(data.batch_id+1) /$(data.NumberOfBatches)")
-        @showprogress 1 "Computing batch $(data.batch_id+1)" for data.id_in_batch in 1:data.BatchSize#, printing_delay=0.1
+        @showprogress dt=1 desc="Computing batch $(data.batch_id+1)" for data.id_in_batch in 1:data.BatchSize
             ResetSim(data, param)
             SetFirstThreeBeads(data, param)
             ComputeBeadsIteratively(data,param, perm)
@@ -37,7 +36,7 @@ function ComputeTrialPositions(data::SimData, param::SimulationParameters)
         data.new_vec.=(
             (u2.*data.cos_trial_torsion_angle[n]
             .+ u1.*data.sin_trial_torsion_angle[n]).* data.sin_trial_angle[n]
-            .+data.current./norm(data.current).*data.cos_trial_angle[n])          .*data.trial_radius[n]
+            .+data.current./norm(data.current).*data.cos_trial_angle[n]).*data.trial_radius[n]
 
         data.trial_positions[n][:] .= (data.xyz[data.id-1].+ data.new_vec)
     end
@@ -56,7 +55,9 @@ function ResetSim(data::SimData, param::SimulationParameters)
 end
 
 function SetFirstThreeBeads(data::SimData, param::SimulationParameters)
-    ### First bead always at (0,0,0)
+    ### First bead always at (0,0,0) → start with second
+    data.id=2
+
     SetTrialRadius(data, param)
     GetTrialBoltzmannWeight(data, param)
     ChooseTrialPosition(data, param)
@@ -72,19 +73,18 @@ function SetFirstThreeBeads(data::SimData, param::SimulationParameters)
     ### go for third bead.
     data.id=3
 
+    data.crossproduct[1] = cos(θ)*cos(φ) #-sin(φ)
+    data.crossproduct[2] = cos(θ)*sin(φ)#cos(θ)
+    data.crossproduct[3] = -sin(θ)  #0.0
+    
+    data.current .= data.xyz[2]
+
     SetTrialRadius(data, param)
     SetTrialBondAngle(data,param)
     SetTrialTorsionAngle(data, param)
 
-    data.crossproduct[1] = -sin(φ)
-    data.crossproduct[2] = cos(φ)
-    data.crossproduct[3] = 0.0 
-    
-    data.current .= data.xyz[2]
-
     ComputeTrialPositions(data,param)
     ChooseTrialPosition(data, param)
-    data.xyz[3] .= data.trial_positions[data.tid]
 
     data.tmp1 .= data.xyz[3].-data.xyz[2]
     ×(data.xyz[2]-data.xyz[1],data.tmp1,data.crossproduct)

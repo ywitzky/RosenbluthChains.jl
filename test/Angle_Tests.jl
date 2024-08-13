@@ -1,7 +1,7 @@
 using StatsBase,Plots
 
 
-#=
+
 @testset "random bond angles" begin
     N= 200_000
     θ=collect(0.01:0.01:π)
@@ -30,11 +30,13 @@ using StatsBase,Plots
     angles_hist =angles_hist.weights ./ sum(angles_hist.weights*(θ[2]-θ[1]))
     θ = (θ[2:end].+θ[1:end-1])/2.0
 
-    theory = 0.5.*sin.(θ)
-    theory ./= (sum(theory)*(θ[2]-θ[1]))
-    fig = Plots.bar(θ, angles_hist, label="rand bond angle")
-    plot!(θ, theory, label="theory")
-    savefig(fig, "./tmp/RandomBondAngle.pdf");
+    if DOPLOTS
+        theory = 0.5.*sin.(θ)
+        theory ./= (sum(theory)*(θ[2]-θ[1]))
+        fig = Plots.bar(θ, angles_hist, label="rand bond angle")
+        plot!(θ, theory, label="theory")
+        savefig(fig, "./tmp/RandomBondAngle.pdf");
+    end
 
     
     @test ComputeKullbackLeiblerDivergence(angles_hist,theory) <0.5 ### we can lower that value if we take more samples
@@ -51,14 +53,15 @@ using StatsBase,Plots
 
     theory = η.*0.0.+1.0./(π)
 
-    fig = Plots.bar(η, torsion_hist, label="rand cross bond angle")
-    plot!(η, torsion2_hist, label="torsion2")
-    plot!(η, theory, label="theory")
-    savefig(fig, "./tmp/RandomTorsionAngle.pdf");
+    if DOPLOTS
+        fig = Plots.bar(η, torsion_hist, label="rand cross bond angle")
+        plot!(η, torsion2_hist, label="torsion2")
+        plot!(η, theory, label="theory")
+        savefig(fig, "./tmp/RandomTorsionAngle.pdf");
 
-    fig = Plots.scatter(angles[1:10_000], torsion2[1:10_000], xlabel="polar angle", ylabel="azimuth angle\ntorsion angle", label="")
-
-    savefig(fig, "./tmp/RandomBondAngleTorsionAngleCorrelation.pdf");
+        fig = Plots.scatter(angles[1:10_000], torsion2[1:10_000], xlabel="polar angle", ylabel="azimuth angle\ntorsion angle", label="")
+        savefig(fig, "./tmp/RandomBondAngleTorsionAngleCorrelation.pdf");
+    end
 
     @test ComputeKullbackLeiblerDivergence(torsion_hist,theory) <0.5
 
@@ -66,9 +69,9 @@ using StatsBase,Plots
     @test all(orthoangle .≈ π/2)
     @test all(orthoangle2 .≈ π/2) 
 end;
-=#
 
 
+### compute root mean square RG and REE values for ideal chains and compare to theory
 @testset "ideal chain Scalings" begin
 for (b, N) in zip([1.0,0.5, 3.0], [100, 200, 300])
     N_Batch=50_000
@@ -85,10 +88,8 @@ for (b, N) in zip([1.0,0.5, 3.0], [100, 200, 300])
     RG_avg, RG_err = ComputeSqrtMeanError(Result.RGs, Result.Weights)
     REE_avg, REE_err = ComputeSqrtMeanError(Result.REEs, Result.Weights)
 
-
-
-    RG_exp = sqrt(b^2*N/6.0)
-    REE_exp = sqrt(b^2*N)
+    RG_exp = sqrt(b^2*(N-1)/6.0)
+    REE_exp = sqrt(b^2*(N-1))
 
     Result.RGs .= sqrt.( Result.RGs)
     Result.REEs .= sqrt.( Result.REEs)
@@ -102,15 +103,20 @@ for (b, N) in zip([1.0,0.5, 3.0], [100, 200, 300])
     theory_hist = @. sqrt(3/(2*π*N*b^2))^3*exp(-3.0*bins^2/(2.0*N*b^2))*bins^2
     theory_hist ./= sum(theory_hist)*(bins[2]-bins[1])
 
-    fig=plot(bins, REE_hist, label="Sim result", xlabel="REE", ylabel="P(REE)")
-    plot!(bins,theory_hist, label="theory", linestyle=:dot)
-    savefig(fig, "./tmp/IdealChainGyrationradius_$(b)_$(N).pdf")
+    if DOPLOTS
+        fig=plot(bins, REE_hist, label="Sim result", xlabel="REE", ylabel="P(REE)")
+        plot!(bins,theory_hist, label="theory", linestyle=:dot)
+        savefig(fig, "./tmp/IdealChainGyrationradius_$(b)_$(N).pdf")
+    end
+
     @test ComputeKullbackLeiblerDivergence(REE_hist,theory_hist) <0.1
 
-    println("RG $(RG_avg) ± $(RG_exp)")
-    println("REE $(REE_avg) ± $(REE_exp)")
+    if VERBOSE
+        println("RG $(RG_avg) ± $(RG_err): theory $(RG_exp)")
+        println("REE $(REE_avg) ± $(REE_err): theory $(REE_exp) ")
+    end
 
-    @test (RG_exp - RG_avg)<2.5*RG_exp
-    @test (REE_exp - REE_avg)<2.5*REE_exp
+    @test (RG_exp - RG_avg)<2.5*RG_err && RG_err<0.1
+    @test (REE_exp - REE_avg)<2.5*REE_err && REE_err<0.5
 end
 end

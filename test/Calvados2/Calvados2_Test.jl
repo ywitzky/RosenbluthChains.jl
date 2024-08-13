@@ -1,11 +1,11 @@
 using Plots
 
-#include("./HarmonicBonds_Test.jl")
-#include("./Debye_Ashbaught_Hatch_Test.jl")
+include("./HarmonicBonds_Test.jl")
+include("./Debye_Ashbaught_Hatch_Test.jl")
 
 ### data.txt was taken from https://github.com/KULL-Centre/papers/blob/main/2022/CG-cutoffs-Tesei-et-al/SC/05_24_20/1_init_proteinsRgs.pkl and contains the data used to create figure 7 in the original calvados2 paper
 
-NTests= 1#67
+NTests= 8#67
 
 file = open("./Calvados2/Calvados2_05_24_20.csv", "r")
 lines = readlines(file)
@@ -81,24 +81,26 @@ RG_Errs = zeros(length(Intervals))
             RGs_bl[ind], RG_Errs[ind] = ComputeMeanError(Result.RGs, Result.Weights; NIntervals=inter)
         end
 
-        println("Name: $(Names[i])")
-        println("RG: $RG_avg±$RG_err ,  Calvados2: $(RGs[i])\n")
+        if VERBOSE
+            println("Name: $(Names[i])")
+            println("RG: $RG_avg±$RG_err ,  Calvados2: $(RGs[i])\n")
+        end
 
         @test abs(RGs[i] - RG_avg)< (2.5*RG_err) ||  abs(RGs[i] - RG_avg) < RGs[i]*0.025    ###  unlikely to be outside of this margin + error in their measurements
 
-        fig = Plots.plot(Intervals, RG_Errs, ylabel="estimated error")
-        Plots.savefig(fig, "./tmp/Calvados2_Errorblock_$(Names[i])_$N_Trial.pdf")
+        if DOPLOTS
+            fig = Plots.plot(Intervals, RG_Errs, ylabel="estimated error")
+            Plots.savefig(fig, "./tmp/Calvados2_Errorblock_$(Names[i])_$N_Trial.pdf")
 
-        b = 10.0 .^ (-8:0.1:0)
-        fig = Plots.histogram(Result.Weights; bin=b, xscale=:log10, yscale=:identity,  xlim=extrema(b), ylabel="Weights")
-        Plots.savefig(fig, "./tmp/Calvados2_$(Names[i])_Weights_$N_Trial.pdf")
-
+            b = 10.0 .^ (-8:0.1:0)
+            fig = Plots.histogram(Result.Weights; bin=b, xscale=:log10, yscale=:identity,  xlim=extrema(b), ylabel="Weights")
+            Plots.savefig(fig, "./tmp/Calvados2_$(Names[i])_Weights_$N_Trial.pdf")
+        end
         ### @TODO trim the tests to smaller size
     end
 end
 
-N_Batch = 10_000
-NTests = 1
+N_Batch = 40_000
 @testset "PERM: Calvados2 Model" begin
     for i in 1:NTests
         N_Trial = 32
@@ -117,11 +119,6 @@ NTests = 1
  
         Result = RunSim(Data, Calvados2_Model, RG_Measurement(N_Batch,Masses ), PERM)
 
-        println("RGs: $(Result.RGs[end-10:end])")
-
-        println("Weight: $(Result.Weights[end-10:end])")
-        println("max: $(maximum(Result.Weights))")
-
         ### numerical stability
         Result.Weights ./= maximum(Result.Weights)
         Total_Weights = sum(Result.Weights)
@@ -136,21 +133,24 @@ NTests = 1
             RGs_bl[ind], RG_Errs[ind] = ComputeMeanError(Result.RGs, Result.Weights; NIntervals=inter)
         end
 
-        println("Name: $(Names[i])")
-        println("RG: $RG_avg±$RG_err ,  Calvados2: $(RGs[i])\n")
-
-        println("unique $(PERM.Total_Grown) vs. $(N_Batch)")
-        println("prune $(PERM.TotalPrune) vs. $(PERM.TotalEnrich)")
-        println("\n\n\n\n")
+        if VERBOSE
+            println("Name: $(Names[i])")
+            println("RG: $RG_avg±$RG_err ,  Calvados2: $(RGs[i])\n")
+            println("unique $(PERM.Total_Grown) vs. $(N_Batch)")
+            println("prune $(PERM.TotalPrune) vs. $(PERM.TotalEnrich)")
+            println("\n\n\n\n")
+        end
 
         @test abs(RGs[i] - RG_avg)< (2.5*RG_err) ||  abs(RGs[i] - RG_avg) < RGs[i]*0.025    ###  unlikely to be outside of this margin + error in their measurements
 
-        fig = Plots.plot(Intervals, RG_Errs, ylabel="estimated error")
-        Plots.savefig(fig, "./tmp/Calvados2_Errorblock_$(Names[i])_$N_Trial.pdf")
-
-        b = 10.0 .^ (-8:0.1:0)
-        fig = Plots.histogram(Result.Weights; bin=b, xscale=:log10, yscale=:identity,  xlim=extrema(b), ylabel="Weights")
-        Plots.savefig(fig, "./tmp/PERM_Calvados2_$(Names[i])_Weights_$N_Trial.pdf")
+        if DOPLOTS
+            fig = Plots.plot(Intervals, RG_Errs, ylabel="estimated error")
+            Plots.savefig(fig, "./tmp/Calvados2_Errorblock_$(Names[i])_$N_Trial.pdf")
+            bmax = maximum(log.(Result.Weights))
+            b = 10.0 .^ (bmax-12:0.1:bmax)
+            fig = Plots.histogram(Result.Weights; bin=b, xscale=:log10, yscale=:identity,  xlim=extrema(b), ylabel="Weights")
+            Plots.savefig(fig, "./tmp/PERM_Calvados2_$(Names[i])_Weights_$N_Trial.pdf")
+        end
 
         ### @TODO trim the tests to smaller size
     end

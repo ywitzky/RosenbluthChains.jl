@@ -13,23 +13,18 @@ Data = SimData("./tmp/", 1.0, N, 1      , 1, 1)
 KP = SimulationParameters( FixedBondParameters(r), FixedBondAngles(θ), FixedTorsionAngles(φ))
 Meas = RunSim(Data,KP, NoMeasurement());
 
-
 @testset "fixed bond length" begin
-    #println([ norm(Data.xyz[i+1]-Data.xyz[i]) for i in 1:N-1   ])
     @test all(r .≈ [ norm(Data.xyz[i+1]-Data.xyz[i]) for i in 1:N-1   ])
 end;
 
 @testset "fixed bond angles" begin
-    #println([ angle(Data.xyz[i+1]-Data.xyz[i],Data.xyz[i+2]-Data.xyz[i+1] ) for i in 1:N-2   ])
-    #println(θ)
     @test all((θ .≈ [ angle(Data.xyz[i+1]-Data.xyz[i],Data.xyz[i+2]-Data.xyz[i+1] ) for i in 1:N-2   ]) )
 end;
 
-#=
+
 @testset "fixed torsion angles" begin
     #https://www.math.fsu.edu/~quine/MB_10/6_torsion.pdf
     rel  = [Data.xyz[i+1]-Data.xyz[i] for i in 1:N-1]
     tors3 = [torsion(rel[i:i+2]...) for i in 1:N-3]
-   # @test all(φ[2:end] .≈ tors3) ### @TODO: Need to fix test.
+    @test all(φ[2:end] .≈ tors3) 
 end;
-=#

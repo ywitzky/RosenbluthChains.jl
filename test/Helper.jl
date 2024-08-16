@@ -1,5 +1,21 @@
 using Base.Iterators: partition
 
+function ComputeMeanAndVariance(data::Vector{T}) where {T<:Real}
+    N = length(data)
+    μ_est = sum(data)/(N)
+    σ_est = sqrt(sum((data.-μ_est).^2)/((N-1)))
+    Δμ_est = σ_est/sqrt(N-1)
+
+
+    ### estimate error of variance
+    μ4 =  sum((data.-μ_est).^4)/(N) #https://stats.stackexchange.com/questions/156518/what-is-the-standard-error-of-the-sample-standard-deviation
+    n =Float64(N-1)
+    Δσ_est = sqrt(1/n*(μ4-(n-3.0)/(n-1.0)*σ_est^4))/(2.0*σ_est)
+
+    return μ_est, Δμ_est, σ_est, Δσ_est
+end
+
+
 function ComputeKullbackLeiblerDivergence(P,Q)
     return sum([p*log(p/q) for (p,q) in zip(P,Q) if p>0 ])
 end

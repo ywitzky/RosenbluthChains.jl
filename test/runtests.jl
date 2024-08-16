@@ -11,12 +11,12 @@ include("./NoMeasurement.jl")
     #include("./SpecificModels_Test.jl")
     #include("./Angle_Tests.jl")
     #include("./BoltzmannFaktor_Test.jl")
-    #include("./Cosine_BondAngles_Test.jl")
-    include("./LJ_Repulsion_Test.jl")
-    #include("./PERM_Test.jl")
+    #include("./LJ_Repulsion_Test.jl")
     #include("./Calvados2/Calvados2_Test.jl")
-
-    include("./RandomNumberTest.jl")### has to be last, currently has side effects
-
+    #include("./RandomNumberTest.jl")
+    include("./Cosine_BondAngles_Test.jl")
+    #include("./LJ_Repulsion_Test.jl")
+    #include("./PERM_Test.jl")
 end
+
 #rm("./tmp/")

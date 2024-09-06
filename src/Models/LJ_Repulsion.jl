@@ -2,6 +2,8 @@ export LJ_Repulsion, clear, LinkedList, add!
 
 using Printf
 
+using LoopVectorization
+
 import Base.@kwdef, Base.show, Base.iterate
 
 abstract type AbstractSortedLinkedList end
@@ -392,16 +394,16 @@ end
 
     for id in 1:data.id-2
         for tid in 1:data.NTrials
-        data.btmp[tid] = sqr_norm(data.trial_positions[tid]-data.xyz[id]) ### square distance
+            data.btmp[tid] = sqr_norm(data.trial_positions[tid]-data.xyz[id]) ### square distance
         end
-        data.tmp5 .= param.sqr_cutoffs[id, data.id].>data.btmp ### mask for cutoff, 0 if larger than cutoff
+        LoopVectorization.@avx data.tmp5 .= param.sqr_cutoffs[id, data.id].>data.btmp ### mask for cutoff, 0 if larger than cutoff
         #if ~all(data.tmp5 .==0)
-        data.btmp .= param.σ_sqr_mean[id, data.id]./data.btmp ### ^2
-        data.btmp .= data.btmp.*data.btmp.*data.btmp ### ^6
-        data.tmp4 .+= data.tmp5.* param.ϵ .*(data.btmp.*data.btmp .-data.btmp.+0.25)### +0.25 is offset at cutoff, ϵ is actually 4*ϵ
+        LoopVectorization.@avx data.btmp .= param.σ_sqr_mean[id, data.id]./data.btmp ### ^2
+        LoopVectorization.@avx  data.btmp .= data.btmp.*data.btmp.*data.btmp ### ^6
+        LoopVectorization.@avx data.tmp4 .+= data.tmp5.* param.ϵ .*(data.btmp.*data.btmp .-data.btmp.+0.25)### +0.25 is offset at cutoff, ϵ is actually 4*ϵ
         #end
     end
-    data.LogBoltzmannFaktor .-=  data.tmp4
+    LoopVectorization.@avx data.LogBoltzmannFaktor .-=  data.tmp4
     nothing
 end
 

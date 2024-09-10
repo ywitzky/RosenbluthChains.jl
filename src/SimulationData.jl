@@ -13,6 +13,7 @@ mutable struct SimData{T<:Real, I<:Integer}
     id_in_batch::I
     batch_id::I
     xyz::Vector{Vector3{T}}
+    max_interaction_length::T ### used for getPotentialNeighbors to hash non bonded interactions
 
     ### Rosebluth Weight stuff
     LogRosenbluthWeight::T   ### Log of weight for the whole chain at current step;
@@ -44,13 +45,21 @@ mutable struct SimData{T<:Real, I<:Integer}
     btmp::Vector{T}
     btmp2::Vector{T}
     btmp3::Vector{T}
+    id_arr::Vector{I}
+    id_arr2::Vector{I}
+    id_arr3::Vector{I}
+
+    val_arr::Vector{T}
+    x_arr::Vector{T}
+    y_arr::Vector{T}
+    z_arr::Vector{T}
 
 
     ### Constructor
     SimData(FolderPath::String, type::T, NBeads::I, NTrials::I, BatchSize::I, NumberOfBatches::I) where {T<: Real, I<: Integer} =  
-    new{T,I}(FolderPath, NBeads, NTrials, BatchSize, NumberOfBatches, 1,1, 1,-1,0,0, Vector{Vector3{T}}(NBeads) ,
+    new{T,I}(FolderPath, NBeads, NTrials, BatchSize, NumberOfBatches, 1,1, 1,-1,0,0, Vector{Vector3{T}}(NBeads) ,0.0,
     0.0,0.0,zeros(NTrials), zeros(NTrials),
     zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials), Vector{Vector3{T}}(NTrials), 
-    Matrix3{T}(), Vector3{T}(0,0,0),Vector3{T}(0,0,0), Vector3{T}(0,0,0) , Vector3{T}(0,0,0), Vector3{T}(0,0,0), Vector3{T}(0,0,0) , zeros(T, NTrials), zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials) ) #MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)))
+    Matrix3{T}(), Vector3{T}(0,0,0),Vector3{T}(0,0,0), Vector3{T}(0,0,0) , Vector3{T}(0,0,0), Vector3{T}(0,0,0), Vector3{T}(0,0,0) , zeros(T, NTrials), zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials) ,  zeros(I, NBeads) ,  zeros(I, NBeads) ,  zeros(I, NBeads) ,  zeros(T, NBeads),  zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials)) #MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)))
 
 end

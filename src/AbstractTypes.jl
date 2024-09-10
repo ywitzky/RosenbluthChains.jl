@@ -63,6 +63,7 @@ end
     for field in fieldnames(typeof(param))
         InitSimParam(data, getfield(param, field))
     end
+    data.max_interaction_length = get_max_bondlength(data, param.BondParam) + get_non_bonded_cutoff(data,param.SAWParam)
 end
 
 function GetTrialBoltzmannWeight(data::SimData,param::AbstractBondParam) nothing end
@@ -107,3 +108,12 @@ function SaveMeasurements(data::SimData, param::SimulationParameters,Measurement
 SimulationParameters( Bond::AbstractBondParam,Angle::AbstractBondAngleParam, Torsion::AbstractTorsionAngleParam, SAW::AbstractSelfAvoidanceParameters)  = SimulationParameters{Float64,Int64}(Bond,Angle,Torsion,SAW)
 
 function clear(data::SimData, param::AbstractSelfAvoidanceParameters) nothing end
+
+
+function get_max_bondlength(data::SimData,Bond::AbstractBondParam) 
+    return eltype(data.TType)(Inf) 
+end
+
+function get_non_bonded_cutoff(data::SimData,NonBonded::AbstractSelfAvoidanceParameters)
+    return eltype(data.TType)(Inf) 
+end

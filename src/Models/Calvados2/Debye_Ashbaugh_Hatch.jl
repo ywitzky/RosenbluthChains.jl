@@ -62,14 +62,23 @@ function InitSimParam(data::SimData,param::Debye_Ashbaugh_Hatch )
     nothing
 end
 
-### "naiv implementation" (n^2 loop) seemed to be the fastest for reasonable lenght polymers/proteins when developing LJ_Repulsion
 ### we aim at SIMD operations for all trial positions
 @inline function GetTrialBoltzmannWeight(data::SimData,param::Debye_Ashbaugh_Hatch)
+
+
+    data.x_arr .= getindex.(data.trial_positions, 1) 
+    data.y_arr .= getindex.(data.trial_positions, 2) 
+    data.z_arr .= getindex.(data.trial_positions, 3) 
+
     fill!(data.tmp4, 0.0) ### saves energy for every test position  
-    for id in 1:data.id-2
-        for tid in 1:data.NTrials
-            data.btmp[tid] = sqr_norm(data.trial_positions[tid]-data.xyz[id]) ### square distance
-        end
+    
+    ### preselect the indices according to locality sensitive hashing
+    for id in getPotentialNeighbors(data)
+
+        LoopVectorization.@avx data.btmp  .= (data.x_arr.-data.xyz[id][1]).^2 
+        LoopVectorization.@avx data.btmp .+= (data.y_arr.-data.xyz[id][2]).^2 
+        LoopVectorization.@avx data.btmp .+= (data.z_arr.-data.xyz[id][3]).^2
+
         LoopVectorization.@avx data.btmp3 .= param.deb_rcut_sqr.>data.btmp ### mask for debye cutoff
 
         if (LoopVectorization.@avx sum(data.btmp3))>0
@@ -104,3 +113,6 @@ end
     nothing
 end
 
+function get_non_bonded_cutoff(data::SimData, NonBonded::Debye_Ashbaugh_Hatch)
+    return sqrt(maximum(NonBonded.ah_rcut_sqr))
+end

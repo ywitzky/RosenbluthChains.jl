@@ -83,6 +83,10 @@ end
     fill!(data.trial_radius, param.BondLength)
 end
 
+function get_max_bondlength(data::SimData,Bond::FixedBondParameters)
+    return Bond.BondLength*1.01
+end
+
 @inline function InitSimParam(data::SimData,param::GaussLpBondAngles ) end
 
 @inline function InitSimParam(data::SimData,param::FixedBondAngles ) end

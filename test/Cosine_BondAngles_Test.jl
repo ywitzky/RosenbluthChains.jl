@@ -13,6 +13,34 @@ r=3.8
 Data = SimData("./tmp/", 1.0, N, N_Trial      , N_Test, 1)
 
 
+
+mutable struct AMeasurement{T<:Number} <: AbstractMeasurement 
+    SumRosenbluthWeights::T
+    AvgCosBondAngle::Array{T}
+    Weight::Vector{T}
+    AMeasurement(NBeads::I, NSteps::I) where {I<:Integer} = new{BigFloat}(zero(BigFloat ), zeros(BigFloat,(NSteps,  NBeads-2)), zeros(BigFloat, NSteps)) #where {T::BigFloat}
+end
+
+function RosenbluthChains.InitMeasurement(data::SimData, param::SimulationParameters, Tmp::AMeasurement) 
+    return AMeasurement(data.NBeads, data.BatchSize)
+end 
+
+function RosenbluthChains.MeasureAfterBatch(data::SimData, param::SimulationParameters,Measurement::AMeasurement) 
+    nothing
+end
+
+function RosenbluthChains.MeasureAfterChainGrowth(data::SimData, param::SimulationParameters, Measurement::AMeasurement) 
+    rel = [data.xyz[i+1]-data.xyz[i] for i in 1:data.NBeads-1]
+    angles=[angle( rel[i],rel[i+1]) for i in 1:data.NBeads-2]
+
+    Measurement.AvgCosBondAngle[data.id_in_batch,:] .= BigFloat.(cos.(angles))
+    Measurement.Weight[data.id_in_batch] = getRosenbluthWeigth(data, param)
+    Measurement.SumRosenbluthWeights += data.RosenbluthWeight #getRosenbluthWeigth(data, param)#
+end
+    
+
+
+
 N_Manual=10_000_000
 
 

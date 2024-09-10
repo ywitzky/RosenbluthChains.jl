@@ -385,21 +385,29 @@ end
     nothing
 end
 
-
+function get_non_bonded_cutoff(data::SimData,NonBonded::LJ_Repulsion)
+    return sqrt(maximum(NonBonded.sqr_cutoffs))
+end
 
 
 ###naiv implementation
 @inline function GetTrialBoltzmannWeight(data::SimData,param::LJ_Repulsion)
     fill!(data.tmp4, 0.0) ### saves energy for every test position  
 
-    for id in 1:data.id-2
-        for tid in 1:data.NTrials
-            data.btmp[tid] = sqr_norm(data.trial_positions[tid]-data.xyz[id]) ### square distance
-        end
+    data.x_arr .= getindex.(data.trial_positions, 1) 
+    data.y_arr .= getindex.(data.trial_positions, 2) 
+    data.z_arr .= getindex.(data.trial_positions, 3) 
+    ### preselect the indices according to locality sensitive hashing
+    for id in getPotentialNeighbors(data)
+ 
+        LoopVectorization.@avx data.btmp  .= (data.x_arr.-data.xyz[id][1]).^2 
+        LoopVectorization.@avx data.btmp .+= (data.y_arr.-data.xyz[id][2]).^2 
+        LoopVectorization.@avx data.btmp .+= (data.z_arr.-data.xyz[id][3]).^2
+
         LoopVectorization.@avx data.tmp5 .= param.sqr_cutoffs[id, data.id].>data.btmp ### mask for cutoff, 0 if larger than cutoff
         #if ~all(data.tmp5 .==0)
         LoopVectorization.@avx data.btmp .= param.σ_sqr_mean[id, data.id]./data.btmp ### ^2
-        LoopVectorization.@avx  data.btmp .= data.btmp.*data.btmp.*data.btmp ### ^6
+        LoopVectorization.@avx data.btmp .= data.btmp.*data.btmp.*data.btmp ### ^6
         LoopVectorization.@avx data.tmp4 .+= data.tmp5.* param.ϵ .*(data.btmp.*data.btmp .-data.btmp.+0.25)### +0.25 is offset at cutoff, ϵ is actually 4*ϵ
         #end
     end
@@ -466,7 +474,7 @@ end
 
 
 @inline function Get3DHash(Position::Vector3{T}, Spacing::T) where {T<: Real}
-    return Int.(floor.(Position./Spacing))
+    return floor.(Int32, Position./Spacing)
 end
 
 function sqr_norm(Vec::Vector{Vector3{T}}, A::Vector3{T}) where {T<:Number}

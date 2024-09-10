@@ -27,6 +27,11 @@ end
     return nothing
 end
 
+function get_max_bondlength(data::SimData,Bond::HarmonicBondLength_Slow{R}) where {R<:Real}
+    return eltype(data.TType)(Inf) 
+end
+
+
 function RosenbluthChains.InitSimParam(data::SimData{R, I}, param::HarmonicBondLength_Slow{R}) where {R<:Real, I<: Integer}
     nothing 
 end
@@ -49,6 +54,10 @@ mutable struct HarmonicBondLength{T<:Real} <: RosenbluthChains.AbstractBondParam
 
         new{T}(k, r0, inv_cdf) 
     end
+end
+
+function get_max_bondlength(data::SimData,Bond::HarmonicBondLength)
+    return Bond.inv_cdf(0.99)### 1.0 would theoretically return infinity
 end
 
 

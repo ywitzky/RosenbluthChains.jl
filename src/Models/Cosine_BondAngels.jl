@@ -43,14 +43,18 @@ end
 function give_rand( s::Cosine_BondAngle_Sampler{I,T}) where {I<:Integer, T<:Real}
     #s.work_array.=(rand(eltype(s.likelyhood))*s.likelyhood[end]).<= s.likelyhood
     bla = rand(T)*s.likelyhood[end]
-    ind = findfirst(x->x>=bla, s.likelyhood)
-    return rand_help(ind, s)
+    for i in axes(s.likelyhood,1)
+        if @inbounds s.likelyhood[i] > bla
+            return rand_help(i, s)
+        end
+    end
+    #ind = findfirst(x->x>=bla, s.likelyhood)
 end
 
 function rand_help(ind::Int64,s::Cosine_BondAngle_Sampler)
-    rand_pos = _rand_off(s.width, s.borders[ind])
-    while rand() > Cosine_BondAngle_func(s.K, rand_pos)/s.maxima[ind]
-        rand_pos = _rand_off(s.width, s.borders[ind])
+    @inbounds rand_pos = _rand_off(s.width, s.borders[ind])
+    @inbounds while rand()*s.maxima[ind] > Cosine_BondAngle_func(s.K, rand_pos)
+        @inbounds rand_pos = _rand_off(s.width, s.borders[ind])
     end
     return rand_pos
 end
@@ -66,7 +70,7 @@ end
 ### is not optimised for very stiff polymers, where some values will never occur
 @inline function SetTrialBondAngle(data::SimData,param::Cosine_BondAngles)
     for i in 1:data.NTrials
-        data.trial_angle[i] =  give_rand(param.AngleGenerator[data.id])
+        @inbounds data.trial_angle[i][:] .=  give_rand(param.AngleGenerator[data.id])
     end
     CompTrigonometricTrialBondAngles(data)
 end
@@ -137,15 +141,23 @@ function give_rand( s::Cosine_BondAngle_Prefactor_Sampler)
     ### draw gaussian for K or lp
     rand_K  = _rand_off(s.width, s.offset) ### x*σ, μ-x*σ
     rnd_num = rand(eltype(s.K_cdf))*s.K_cdf[end]
-    ind = findfirst(x->x>=rnd_num, s.K_cdf)
-    rand_K = _rand_off(s.K_width, s.K_borders[ind])
-    while rand()*s.K_max[ind] > s.P_κ(rand_K)
+    ind = 1
+    @inbounds for i in axes(s.K_cdf,1) ### replicate findfirst(x->x>=rnd_num, s.K_cdf)
+        @inbounds if s.K_cdf[i] > rnd_num
+            ind = i
+            break
+        end
+    end
+
+    #ind = findfirst(x->x>=rnd_num, s.K_cdf)
+    @inbounds rand_K = _rand_off(s.K_width, s.K_borders[ind])
+    @inbounds while rand()*s.K_max[ind] > s.P_κ(rand_K)
         rand_K = _rand_off(s.K_width,  s.K_borders[ind])
     end
 
     ### draw angle accordingly
     rand_ϕ = rand(eltype(rand_K))*π
-    while rand()*s.max_val_Pθ >  s.P_Θ(rand_K,rand_ϕ)
+    @inbounds while rand()*s.max_val_Pθ >  s.P_Θ(rand_K,rand_ϕ)
         rand_ϕ = rand(eltype(rand_K))*π
     end
     return (rand_K, rand_ϕ)
@@ -187,7 +199,7 @@ end
 ### is not optimised for very stiff polymers, where some values will never occur
 @inline function SetTrialBondAngle(data::SimData,param::GaussianK_Cosine_BondAngles)
     for i in 1:data.NTrials
-        data.trial_angle[i] = give_rand(param.Sampler)[2]
+        @inbounds data.trial_angle[i] = give_rand(param.Sampler)[2]
     end
     CompTrigonometricTrialBondAngles(data)
     nothing

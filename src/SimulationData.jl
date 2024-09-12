@@ -13,6 +13,9 @@ mutable struct SimData{T<:Real, I<:Integer}
     id_in_batch::I
     batch_id::I
     xyz::Vector{Vector3{T}}
+    x::Vector{T} ### copy of x value in xyz
+    y::Vector{T} ### copy of y value in xyz
+    z::Vector{T} ### copy of z value in xyz
     max_interaction_length::T ### used for getPotentialNeighbors to hash non bonded interactions
 
     ### Rosebluth Weight stuff
@@ -48,6 +51,7 @@ mutable struct SimData{T<:Real, I<:Integer}
     id_arr::Vector{I}
     id_arr2::Vector{I}
     id_arr3::Vector{I}
+    id_arr4::Vector{I}
 
     val_arr::Vector{T}
     x_arr::Vector{T}
@@ -57,9 +61,9 @@ mutable struct SimData{T<:Real, I<:Integer}
 
     ### Constructor
     SimData(FolderPath::String, type::T, NBeads::I, NTrials::I, BatchSize::I, NumberOfBatches::I) where {T<: Real, I<: Integer} =  
-    new{T,I}(FolderPath, NBeads, NTrials, BatchSize, NumberOfBatches, 1,1, 1,-1,0,0, Vector{Vector3{T}}(NBeads) ,0.0,
+    new{T,I}(FolderPath, NBeads, NTrials, BatchSize, NumberOfBatches, 1,1, 1,-1,0,0, Vector{Vector3{T}}(NBeads) , zeros(T, NBeads), zeros(T, NBeads), zeros(T, NBeads),0.0,
     0.0,0.0,zeros(NTrials), zeros(NTrials),
     zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials), Vector{Vector3{T}}(NTrials), 
-    Matrix3{T}(), Vector3{T}(0,0,0),Vector3{T}(0,0,0), Vector3{T}(0,0,0) , Vector3{T}(0,0,0), Vector3{T}(0,0,0), Vector3{T}(0,0,0) , zeros(T, NTrials), zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials) ,  zeros(I, NBeads) ,  zeros(I, NBeads) ,  zeros(I, NBeads) ,  zeros(T, NBeads),  zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials)) #MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)))
+    Matrix3{T}(), Vector3{T}(0,0,0),Vector3{T}(0,0,0), Vector3{T}(0,0,0) , Vector3{T}(0,0,0), Vector3{T}(0,0,0), Vector3{T}(0,0,0) , zeros(T, NTrials), zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials) ,  zeros(I, NBeads) ,  zeros(I, NBeads) ,  zeros(I, NBeads),  zeros(I, NBeads) ,  zeros(T, NBeads),  zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials)) #MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)))
 
 end

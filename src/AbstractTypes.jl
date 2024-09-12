@@ -92,6 +92,9 @@ function ChooseTrialPosition(data::SimData,param::SimulationParameters)
     #println(data.LogBoltzmannFaktor)
     #println(data.RosenbluthWeight, "  ",sum(   data.btmp)/data.NTrials )
     data.xyz[data.id] .= data.trial_positions[data.tid]
+    data.x[data.id] = data.trial_positions[data.tid][1]
+    data.y[data.id] = data.trial_positions[data.tid][2]
+    data.z[data.id] = data.trial_positions[data.tid][3]
 
     nothing
 end

@@ -33,7 +33,7 @@ function ComputeTrialPositions(data::SimData, param::SimulationParameters)
         u2=Vector3{Float64}(0,0,0)
         ×( data.current/norm(data.current),-1.0 .*u1, u2)
 
-        data.new_vec.=(
+         data.new_vec.=(
             (u2.*data.cos_trial_torsion_angle[n]
             .+ u1.*data.sin_trial_torsion_angle[n]).* data.sin_trial_angle[n]
             .+data.current./norm(data.current).*data.cos_trial_angle[n]).*data.trial_radius[n]

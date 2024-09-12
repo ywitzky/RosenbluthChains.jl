@@ -3,3 +3,4 @@
 Output.txt
 rosenbluthchains.code-workspace
 Manifest.toml
+*.mem

@@ -394,9 +394,9 @@ end
 @inline function GetTrialBoltzmannWeight(data::SimData,param::LJ_Repulsion)
     fill!(data.tmp4, 0.0) ### saves energy for every test position  
 
-    data.x_arr .= getindex.(data.trial_positions, 1) 
-    data.y_arr .= getindex.(data.trial_positions, 2) 
-    data.z_arr .= getindex.(data.trial_positions, 3) 
+    @inbounds data.x_arr .= getindex.(data.trial_positions, 1) 
+    @inbounds data.y_arr .= getindex.(data.trial_positions, 2) 
+    @inbounds data.z_arr .= getindex.(data.trial_positions, 3) 
     ### preselect the indices according to locality sensitive hashing
     for id in getPotentialNeighbors(data)
  

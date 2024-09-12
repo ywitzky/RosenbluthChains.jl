@@ -39,36 +39,51 @@ end
     nothing
 end
 
-
-
 function getPotentialNeighbors(data::SimData)
     ### 2d or 3d hashing are equally fast for low number of beads => no need to not do 3d hashing 
 
-    data.val_arr[1:data.id-2] .= getindex.(data.xyz[1:data.id-2], 1) ### get x values
 
     max_bondlength=data.max_interaction_length
 
-    x_max = floor.(Int32, (data.xyz[data.id-1][1]+max_bondlength)) 
-    x_min = floor.(Int32, (data.xyz[data.id-1][1]-max_bondlength)) 
+    @inbounds x_max = floor.(Int32, (data.xyz[data.id-1][1]+max_bondlength)) 
+    @inbounds x_min = floor.(Int32, (data.xyz[data.id-1][1]-max_bondlength)) 
 
-    LoopVectorization.@avx data.id_arr[1:data.id-2] .=  floor.(Int32, (data.val_arr[1:data.id-2]))
+    #LoopVectorization.@avx data.id_arr[1:data.id-2] .=  floor.(Int32, (data.x[1:data.id-2]))
+
+    ### not using the above version removes the allocations
+    LoopVectorization.@avx data.id_arr .=  floor.(Int32, (data.x))
+
+    #@inbounds floor_f(data.id_arr[1:data.id-2] ,data.x[1:data.id-2], Int32)
+
+    @inbounds y_max = floor.(Int32, (data.xyz[data.id-1][2]+max_bondlength)) 
+    @inbounds y_min = floor.(Int32, (data.xyz[data.id-1][2]-max_bondlength)) 
+
+    #LoopVectorization.@avx  data.id_arr2[1:data.id-2] .=  floor.(Int32, (data.y[1:data.id-2])) 
+
+    LoopVectorization.@avx data.id_arr2 .=  floor.(Int32, (data.y))
 
 
-    y_max = floor.(Int32, (data.xyz[data.id-1][2]+max_bondlength)) 
-    y_min = floor.(Int32, (data.xyz[data.id-1][2]-max_bondlength)) 
-
-    data.val_arr[1:data.id-2] .= getindex.(data.xyz[1:data.id-2], 2) ### get y values
-
-    LoopVectorization.@avx data.id_arr2[1:data.id-2] .=  floor.(Int32, (data.val_arr[1:data.id-2])) 
+    @inbounds z_max = floor.(Int32, (data.xyz[data.id-1][3]+max_bondlength)) 
+    @inbounds z_min = floor.(Int32, (data.xyz[data.id-1][3]-max_bondlength)) 
 
 
-    z_max = floor.(Int32, (data.xyz[data.id-1][3]+max_bondlength)) 
-    z_min = floor.(Int32, (data.xyz[data.id-1][3]-max_bondlength)) 
+    #LoopVectorization.@avx data.id_arr3[1:data.id-2] .=  floor.(Int32, (data.z[1:data.id-2]))
 
-    data.val_arr[1:data.id-2] .= getindex.(data.xyz[1:data.id-2], 3) ### get z values
+    LoopVectorization.@avx data.id_arr3 .=  floor.(Int32, (data.z))
 
-    LoopVectorization.@avx data.id_arr3[1:data.id-2] .=  floor.(Int32, (data.val_arr[1:data.id-2]))
 
-    
-    return  [id for (id, (xid, yid, zid)) in enumerate(zip(data.id_arr[1:data.id-2], data.id_arr2[1:data.id-2], data.id_arr3[1:data.id-2])) if xid>=x_min && xid<=x_max &&  yid>=y_min && yid<=y_max  && zid>=z_min && zid<=z_max]
+    cnt= 0
+    @inbounds for i in 1:data.id-2
+        @inbounds if data.id_arr[i]>=x_min && data.id_arr[i]<=x_max
+            @inbounds if data.id_arr2[i]>=y_min && data.id_arr2[i]<=y_max 
+                @inbounds if data.id_arr3[i]>=z_min && data.id_arr3[i]<=z_max
+                    cnt += 1
+                    @inbounds data.id_arr4[cnt] =  i
+                end
+            end
+        end
+    end
+    return @view data.id_arr4[1:cnt]
+
+    #return  [id for (id, (xid, yid, zid)) in enumerate(zip(data.id_arr[1:data.id-2], data.id_arr2[1:data.id-2], data.id_arr3[1:data.id-2])) if xid>=x_min && xid<=x_max &&  yid>=y_min && yid<=y_max  && zid>=z_min && zid<=z_max]
 end

@@ -28,20 +28,19 @@ function solveRecursive(Target::T, Func::Function, Left::T, Right::T)where {T<:R
 end
 
 @inline function CompTrigonometricTrialBondAngles(data::SimData)
-    data.cos_trial_angle .= cos.(data.trial_angle)
-    data.sin_trial_angle .= @. sign(π.-data.trial_angle).*  √(1-data.cos_trial_angle^2) ## #only works on interval [0, 2π]@.  √(1-data.cos_trial_angle^2)
+    data.cos_trial_angle .= LoopVectorization.@avx  cos.(data.trial_angle)
+    data.sin_trial_angle .= LoopVectorization.@avx  @. sign(π.-data.trial_angle).*  √(1-data.cos_trial_angle^2) ## #only works on interval [0, 2π]@.  √(1-data.cos_trial_angle^2)
     nothing
 end
 
 @inline function CompTrigonometricTrialTorsionAngles(data::SimData)
-    data.cos_trial_torsion_angle .= cos.(data.trial_torsion_angle)
-    data.sin_trial_torsion_angle .= @. sign(π.-data.trial_torsion_angle).* √(1-data.cos_trial_torsion_angle^2) #only works on interval [0, 2π]  #@. √(1-data.cos_trial_torsion_angle^2)
+    data.cos_trial_torsion_angle .= LoopVectorization.@avx cos.(data.trial_torsion_angle)
+    data.sin_trial_torsion_angle .= LoopVectorization.@avx  @. sign(π.-data.trial_torsion_angle).* √(1-data.cos_trial_torsion_angle^2) #only works on interval [0, 2π]  #@. √(1-data.cos_trial_torsion_angle^2)
     nothing
 end
 
 function getPotentialNeighbors(data::SimData)
     ### 2d or 3d hashing are equally fast for low number of beads => no need to not do 3d hashing 
-
 
     max_bondlength=data.max_interaction_length
 
@@ -50,15 +49,13 @@ function getPotentialNeighbors(data::SimData)
 
     #LoopVectorization.@avx data.id_arr[1:data.id-2] .=  floor.(Int32, (data.x[1:data.id-2]))
 
-    ### not using the above version removes the allocations
+    ### not using the above version removes the allocations => speed up especially for many nodes
     LoopVectorization.@avx data.id_arr .=  floor.(Int32, (data.x))
 
-    #@inbounds floor_f(data.id_arr[1:data.id-2] ,data.x[1:data.id-2], Int32)
 
     @inbounds y_max = floor.(Int32, (data.xyz[data.id-1][2]+max_bondlength)) 
     @inbounds y_min = floor.(Int32, (data.xyz[data.id-1][2]-max_bondlength)) 
 
-    #LoopVectorization.@avx  data.id_arr2[1:data.id-2] .=  floor.(Int32, (data.y[1:data.id-2])) 
 
     LoopVectorization.@avx data.id_arr2 .=  floor.(Int32, (data.y))
 
@@ -66,11 +63,7 @@ function getPotentialNeighbors(data::SimData)
     @inbounds z_max = floor.(Int32, (data.xyz[data.id-1][3]+max_bondlength)) 
     @inbounds z_min = floor.(Int32, (data.xyz[data.id-1][3]-max_bondlength)) 
 
-
-    #LoopVectorization.@avx data.id_arr3[1:data.id-2] .=  floor.(Int32, (data.z[1:data.id-2]))
-
     LoopVectorization.@avx data.id_arr3 .=  floor.(Int32, (data.z))
-
 
     cnt= 0
     @inbounds for i in 1:data.id-2
@@ -84,6 +77,4 @@ function getPotentialNeighbors(data::SimData)
         end
     end
     return @view data.id_arr4[1:cnt]
-
-    #return  [id for (id, (xid, yid, zid)) in enumerate(zip(data.id_arr[1:data.id-2], data.id_arr2[1:data.id-2], data.id_arr3[1:data.id-2])) if xid>=x_min && xid<=x_max &&  yid>=y_min && yid<=y_max  && zid>=z_min && zid<=z_max]
 end

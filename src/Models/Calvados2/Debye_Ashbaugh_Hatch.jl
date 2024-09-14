@@ -5,14 +5,14 @@ using LoopVectorization
 ### combines Debye potential and ashbaugh hatch potential
 struct Debye_Ashbaugh_Hatch{T<:Real} <: AbstractSelfAvoidanceParameters
     ah_ϵ::T #### saved as 4*epsilon
-    ah_λ::Array{T}
-    ah_sqr_cutoffs::Array{T} ### 2^(1/6)*σ
-    ah_σ_sqr_mean::Array{T}
+    ah_λ::Matrix{T}
+    ah_sqr_cutoffs::Matrix{T} ### 2^(1/6)*σ
+    ah_σ_sqr_mean::Matrix{T}
     ah_rcut_sqr::T ### 20AA usually
-    ah_λu_cut::Array{T}
-    ah_shift::Array{T}
+    ah_λu_cut::Matrix{T}
+    ah_shift::Matrix{T}
     deb_rcut_sqr::T
-    deb_qq::Array{T}
+    deb_qq::Matrix{T}
     deb_D::T
    
     Debye_Ashbaugh_Hatch(Sequence::String , TypeToSigma::Dict{Char, T}, TypeToLambda::Dict{Char, T}, ϵ_ah::T, rc_ah::T, TypeToCharge::Dict{Char, T}, rc_deb::T, cs_deb::T, rel_Temp::T) where {T<:Real} =begin

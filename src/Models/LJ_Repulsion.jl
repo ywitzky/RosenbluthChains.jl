@@ -350,24 +350,29 @@ end
 
 struct LJ_Repulsion{T<:Real, I<:Integer} <: AbstractSelfAvoidanceParameters
     ϵ::T #### saved as 4*epsilon
-    sqr_cutoffs::Array{T}
-    σ_sqr_mean::Array{T}
-    CL::CellLinkedList{I}
+    type::Vector{I}
+    sqr_cutoffs::Matrix{T}
+    σ_sqr_mean::Matrix{T}
+    #CL::CellLinkedList{I}
     LJ_Repulsion(BeadType::Vector{I}, TypeToSigma::Dict{I, T}, ϵ::T) where {T<:Real, I<:Integer} =begin
+        BeadType_ = BeadType
+        BeadType = collect(Set(BeadType))
+
         σ = zeros(T, length(BeadType))
         σ_mean = zeros(T, (length(BeadType),length(BeadType)))
         for (id, type) in enumerate(BeadType)
             σ[id] = TypeToSigma[type]
         end
 
-
         for (id, type) in enumerate(BeadType)
             for (id2, type2) in enumerate(BeadType)
                 σ_mean[id, id2] = (σ[id]+σ[id2])/2.0
             end
         end
-        sqr_cutoffs = 2.0^(1.0/6.0).*σ_mean
-        return new{T,I}(4*ϵ,sqr_cutoffs.^2, σ_mean.^2, CellLinkedList(maximum(sqr_cutoffs)) )
+        #SMatrix{length(BeadType),length(BeadType)}((
+        sqr_cutoffs =(2.0^(1.0/6.0).*σ_mean).^2
+
+        return new{T,I}(4*ϵ,BeadType_, sqr_cutoffs, σ_mean.^2)#, CellLinkedList(maximum(sqr_cutoffs)) )
     end
 end
 
@@ -381,7 +386,7 @@ end
 end
 
 @inline function clear(data::SimData,param::LJ_Repulsion)
-    clear(param.CL)
+    #clear(param.CL)
     nothing
 end
 
@@ -398,16 +403,37 @@ end
     @inbounds data.y_arr .= getindex.(data.trial_positions, 2) 
     @inbounds data.z_arr .= getindex.(data.trial_positions, 3) 
     ### preselect the indices according to locality sensitive hashing
+    #off = (data.id-1) * size(param.sqr_cutoffs)[1]
+    #println("id $(data.id), size( $(size(param.sqr_cutoffs)[1])), off = $(off)")
+
+    ind2=param.type[data.id]
+
     for id in getPotentialNeighbors(data)
  
         LoopVectorization.@avx data.btmp  .= (data.x_arr.-data.xyz[id][1]).^2 
         LoopVectorization.@avx data.btmp .+= (data.y_arr.-data.xyz[id][2]).^2 
         LoopVectorization.@avx data.btmp .+= (data.z_arr.-data.xyz[id][3]).^2
 
-        LoopVectorization.@avx data.tmp5 .= param.sqr_cutoffs[id, data.id].>data.btmp ### mask for cutoff, 0 if larger than cutoff
+
+        ind1= param.type[id]
+        #data.rand_val =  @inbounds param.sqr_cutoffs[id , data.id]
+        data.rand_val =  @inbounds param.sqr_cutoffs[ind1,ind2]
+
+        @inbounds fill!(data.btmp3, data.rand_val)
+
+        LoopVectorization.@avx data.tmp5 .= data.btmp3.>data.btmp ### mask for cutoff, 0 if larger than cutoff
+
+        #LoopVectorization.@avx data.tmp5 .= param.sqr_cutoffs[id, data.id].>data.btmp ### mask for cutoff, 0 if larger than cutoff
         #if ~all(data.tmp5 .==0)
-        LoopVectorization.@avx data.btmp .= param.σ_sqr_mean[id, data.id]./data.btmp ### ^2
+
+        data.rand_val =  @inbounds param.sqr_cutoffs[ind1,ind2]
+
+        @inbounds  fill!(data.btmp3, param.σ_sqr_mean[ind1,ind2])
+
+        LoopVectorization.@avx data.btmp .= data.btmp3./data.btmp ### ^2
+
         LoopVectorization.@avx data.btmp .= data.btmp.*data.btmp.*data.btmp ### ^6
+
         LoopVectorization.@avx data.tmp4 .+= data.tmp5.* param.ϵ .*(data.btmp.*data.btmp .-data.btmp.+0.25)### +0.25 is offset at cutoff, ϵ is actually 4*ϵ
         #end
     end

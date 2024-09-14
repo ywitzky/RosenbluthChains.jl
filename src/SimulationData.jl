@@ -40,7 +40,7 @@ mutable struct SimData{T<:Real, I<:Integer}
     crossproduct::Vector3{T}
     current::Vector3{T}
     new_vec::Vector3{T}
-    tmp1::Vector3{T}
+    tmp1::Vector3{T} ###
     tmp2::Vector3{T}
     tmp3::Vector3{T}
     tmp4::Vector{T}
@@ -48,6 +48,7 @@ mutable struct SimData{T<:Real, I<:Integer}
     btmp::Vector{T}
     btmp2::Vector{T}
     btmp3::Vector{T}
+
     id_arr::Vector{I}
     id_arr2::Vector{I}
     id_arr3::Vector{I}
@@ -57,6 +58,7 @@ mutable struct SimData{T<:Real, I<:Integer}
     x_arr::Vector{T}
     y_arr::Vector{T}
     z_arr::Vector{T}
+    rand_val::T
 
 
     ### Constructor
@@ -64,6 +66,6 @@ mutable struct SimData{T<:Real, I<:Integer}
     new{T,I}(FolderPath, NBeads, NTrials, BatchSize, NumberOfBatches, 1,1, 1,-1,0,0, Vector{Vector3{T}}(NBeads) , zeros(T, NBeads), zeros(T, NBeads), zeros(T, NBeads),0.0,
     0.0,0.0,zeros(NTrials), zeros(NTrials),
     zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials), Vector{Vector3{T}}(NTrials), 
-    Matrix3{T}(), Vector3{T}(0,0,0),Vector3{T}(0,0,0), Vector3{T}(0,0,0) , Vector3{T}(0,0,0), Vector3{T}(0,0,0), Vector3{T}(0,0,0) , zeros(T, NTrials), zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials) ,  zeros(I, NBeads) ,  zeros(I, NBeads) ,  zeros(I, NBeads),  zeros(I, NBeads) ,  zeros(T, NBeads),  zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials)) #MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)))
+    Matrix3{T}(), Vector3{T}(0,0,0),Vector3{T}(0,0,0), Vector3{T}(0,0,0) , Vector3{T}(0,0,0), Vector3{T}(0,0,0), Vector3{T}(0,0,0) , zeros(T, NTrials), zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials) ,  zeros(I, NBeads) ,  zeros(I, NBeads) ,  zeros(I, NBeads),  zeros(I, NBeads) ,  zeros(T, NBeads),  zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials), zero(T)) #MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)))
 
 end

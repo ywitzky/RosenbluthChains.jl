@@ -40,23 +40,24 @@ struct Cosine_BondAngle_Sampler{I<:Int, T<: Real} <: Sampleable{Univariate,Conti
     end
 end
 
-function give_rand( s::Cosine_BondAngle_Sampler{I,T}) where {I<:Integer, T<:Real}
+function give_rand( s::Cosine_BondAngle_Sampler{I,T}, data::SimData{T,I}) where {I<:Integer, T<:Real}
     #s.work_array.=(rand(eltype(s.likelyhood))*s.likelyhood[end]).<= s.likelyhood
     bla = rand(T)*s.likelyhood[end]
     for i in axes(s.likelyhood,1)
         if @inbounds s.likelyhood[i] > bla
-            return rand_help(i, s)
+            return rand_help(i, s, data)
         end
     end
     #ind = findfirst(x->x>=bla, s.likelyhood)
 end
 
-function rand_help(ind::Int64,s::Cosine_BondAngle_Sampler)
-    @inbounds rand_pos = _rand_off(s.width, s.borders[ind])
-    @inbounds while rand()*s.maxima[ind] > Cosine_BondAngle_func(s.K, rand_pos)
-        @inbounds rand_pos = _rand_off(s.width, s.borders[ind])
+function rand_help(ind::Int64,s::Cosine_BondAngle_Sampler, data::SimData)
+    @inbounds data.rand_val = _rand_off(s.width, s.borders[ind])
+    @inbounds while rand()*s.maxima[ind] > Cosine_BondAngle_func(s.K, data.rand_val)
+        @inbounds data.rand_val = _rand_off(s.width, s.borders[ind])
     end
-    return rand_pos
+    #return data.rand_pos
+    nothing
 end
 
 
@@ -70,7 +71,8 @@ end
 ### is not optimised for very stiff polymers, where some values will never occur
 @inline function SetTrialBondAngle(data::SimData,param::Cosine_BondAngles)
     for i in 1:data.NTrials
-        @inbounds data.trial_angle[i][:] .=  give_rand(param.AngleGenerator[data.id])
+        give_rand(param.AngleGenerator[data.id], data)
+        @inbounds data.trial_angle[i][:] .=  data.rand_val
     end
     CompTrigonometricTrialBondAngles(data)
 end
@@ -199,7 +201,7 @@ end
 ### is not optimised for very stiff polymers, where some values will never occur
 @inline function SetTrialBondAngle(data::SimData,param::GaussianK_Cosine_BondAngles)
     for i in 1:data.NTrials
-        @inbounds data.trial_angle[i] = give_rand(param.Sampler)[2]
+        @inbounds data.trial_angle[i] = give_rand(param.Sampler, data)[2]
     end
     CompTrigonometricTrialBondAngles(data)
     nothing
@@ -337,7 +339,8 @@ end
 ### is not optimised for very stiff polymers, where some values will never occur
 @inline function SetTrialBondAngle(data::SimData,param::GaussianLp_Cosine_BondAngles)
     for i in 1:data.NTrials
-        data.trial_angle[i] = give_rand(param.Sampler[data.id-2])
+        give_rand(param.Sampler[data.id-2], data) ### writes into data.rand_Val
+        data.trial_angle[i] = data.rand_val
     end
     CompTrigonometricTrialBondAngles(data)
     nothing

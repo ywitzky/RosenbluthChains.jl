@@ -70,25 +70,26 @@ using StatsBase,Plots
     @test all(orthoangle2 .≈ π/2) 
 end;
 
+using Plots
 
 ### compute root mean square RG and REE values for ideal chains and compare to theory
 @testset "ideal chain Scalings" begin
-for (b, N) in zip([1.0,0.5, 3.0], [100, 200, 300])
+for (b, N) in zip([1.0, 1.0,0.5, 3.0], [20, 100, 200, 300])
     N_Batch=50_000
     Data = SimData("../tmp/", 1.0, N, 8, N_Batch, 1)
 
     Model = SimulationParameters( FixedBondParameters(b), RandBondAngle(), RandTorsion(), IdealChain())
 
-    Result = RunSim(Data, Model, RG_Measurement(N_Batch, ones(N)))
+    Result = RunSim(Data, Model, RosenbluthChains.RG_Measurement(Data.FolderPath, N_Batch))
 
     ### numerical stability
     Result.Weights ./= maximum(Result.Weights)
     Total_Weights = sum(Result.Weights)
 
-    RG_avg, RG_err = ComputeSqrtMeanError(Result.RGs, Result.Weights)
-    REE_avg, REE_err = ComputeSqrtMeanError(Result.REEs, Result.Weights)
+    RG_avg, RG_err = ComputeSqrtMeanError(Result.RGs, Result.Weights ; NIntervals =100)
+    REE_avg, REE_err = ComputeSqrtMeanError(Result.REEs, Result.Weights; NIntervals =100)
 
-    RG_exp = sqrt(b^2*(N-1)/6.0)
+    RG_exp = sqrt(b^2*(N)/6.0)
     REE_exp = sqrt(b^2*(N-1))
 
     Result.RGs .= sqrt.( Result.RGs)
@@ -112,11 +113,14 @@ for (b, N) in zip([1.0,0.5, 3.0], [100, 200, 300])
     @test ComputeKullbackLeiblerDivergence(REE_hist,theory_hist) <0.1
 
     if VERBOSE
-        println("RG $(RG_avg) ± $(RG_err): theory $(RG_exp)")
-        println("REE $(REE_avg) ± $(REE_err): theory $(REE_exp) ")
+        println("RG $(RG_avg) ± $(RG_err): theory $(RG_exp)  rel :$(RG_avg/RG_exp)")
+        println("REE $(REE_avg) ± $(REE_err): theory $(REE_exp) rel :$(REE_avg/REE_exp)")
     end
 
-    @test (RG_exp - RG_avg)<2.5*RG_err && RG_err<0.1
-    @test (REE_exp - REE_avg)<2.5*REE_err && REE_err<0.5
+    @test abs(RG_exp - RG_avg)<2.5*RG_err && RG_err<0.1
+    @test abs(REE_exp - REE_avg)<2.5*REE_err && REE_err<0.5
+
+    RosenbluthChains.close(Result)
+
 end
 end

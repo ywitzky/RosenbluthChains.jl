@@ -58,29 +58,6 @@ function PlotsWeightHistorgam(Weights, path::String, limits=-8:0.1:0)
 end
 
 
-#### measurement for radius of gyration and end-to-end distance length
-mutable struct RG_Measurement{T<:Real} <: AbstractMeasurement 
-    RGs::Vector{T}
-    REEs::Vector{T}
-    Weights::Vector{T}
-    Masses::Vector{T}
-    M_Total::T
-    RG_Measurement(NProteins::Int, Masses::Vector{Float64}) = new{Float64}(zeros(NProteins), zeros(NProteins), zeros(NProteins), Masses, sum(Masses)) 
-end
-
-
-### initialise measurments with empty vectors
-RosenbluthChains.InitMeasurement(data::SimData, param::SimulationParameters, Tmp::RG_Measurement) =  RG_Measurement(data.BatchSize, Tmp.Masses)
-
-function RosenbluthChains.MeasureAfterChainGrowth(data::SimData, param::SimulationParameters,Measurement::RG_Measurement) 
-    com = sum(Measurement.Masses.*data.xyz)./Measurement.M_Total
-
-    Measurement.RGs[data.id_in_batch] = sum(Measurement.Masses.*sqr_norm.([pos-com for pos in data.xyz]))/Measurement.M_Total
-    Measurement.REEs[data.id_in_batch] = sqr_norm(data.xyz[end]-data.xyz[1])
-    Measurement.Weights[data.id_in_batch] =  getRosenbluthWeigth(data, param)
-end
-
-RosenbluthChains.MeasureAfterBatch(data::SimData, param::SimulationParameters, Measurement::RG_Measurement) = nothing
 
 
 

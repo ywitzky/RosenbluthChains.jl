@@ -3,8 +3,6 @@ using StatsBase,Plots,LsqFit
 
 using Base.Iterators: partition
 
-
-#=
 @testset "PERM: ideal chain Scalings" begin
     for (b, N) in zip([1.0,0.5, 3.0], [100, 200, 300])
         N_Batch=50_000
@@ -13,7 +11,7 @@ using Base.Iterators: partition
         Model = SimulationParameters( FixedBondParameters(b), RandBondAngle(), RandTorsion(), IdealChain())
 
         PERM = PermData(N; cMax=2.0, cMin=0.2,PreAverage=N_Batch)
-        Result = RunSim(Data, Model, RG_Measurement(N_Batch, ones(N)), PERM)
+        Result = RunSim(Data, Model,RosenbluthChains.RG_Mass_Measurement(Data.FolderPath,N_Batch, ones(N)), PERM)
 
         ### numerical stability
         Result.Weights ./= maximum(Result.Weights)
@@ -36,7 +34,7 @@ using Base.Iterators: partition
         theory_hist = @. sqrt(3/(2*π*N*b^2))^3*exp(-3.0*bins^2/(2.0*N*b^2))*bins^2
         theory_hist ./= sum(theory_hist)*(bins[2]-bins[1])
 
-        if DOPLOTs
+        if DOPLOTS
             fig=Plots.bar(bins, REE_hist, label="Sim result", xlabel="REE", ylabel="P(REE)")
             plot!(bins,theory_hist, label="theory", linestyle=:dot)
             savefig(fig, "./tmp/PERM_IdealChainGyrationradius_$(b)_$(N).pdf")
@@ -47,7 +45,7 @@ using Base.Iterators: partition
         @test (REE_exp - REE_avg)<3.0*REE_err
     end
 end
-=#
+
 
 
 N= 100
@@ -82,7 +80,7 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
         ratio = 200.0
         PERM = PermData(N; cMax=val, cMin=val/ratio, PreAverage=5_000)
 
-        Result = RunSim(Data,KP, RG_Measurement(N_Batch, ones(N)), PERM);
+        Result = RunSim(Data,KP, RosenbluthChains.RG_Mass_Measurement(Data.FolderPath, N_Batch, ones(N)), PERM);
 
         PlotsWeightHistorgam(Result.Weights,"./tmp/PERM_LJ_Weights_$(N)",collect(-2:0.1:3.0))
 

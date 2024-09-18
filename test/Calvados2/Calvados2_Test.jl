@@ -64,7 +64,7 @@ RG_Errs = zeros(length(Intervals))
         Masses[1] += 2.0
         Masses[end] += 16.0
  
-        Result = RunSim(Data, Calvados2_Model, RG_Measurement(N_Batch,Masses ))
+        Result = RunSim(Data, Calvados2_Model, RosenbluthChains.RG_Mass_Measurement(Data.FolderPath,N_Batch,Masses ))
 
         ### numerical stability
         Result.Weights ./= maximum(Result.Weights)
@@ -117,7 +117,7 @@ N_Batch = 40_000
         ratio = 100.0
         PERM = PermData(N[i];K=4, cMax=val, cMin=val/ratio, PreAverage=10_000)
  
-        Result = RunSim(Data, Calvados2_Model, RG_Measurement(N_Batch,Masses ), PERM)
+        Result = RunSim(Data, Calvados2_Model, RosenbluthChains.RG_Mass_Measurement(Data.FolderPath,N_Batch,Masses ), PERM)
 
         ### numerical stability
         Result.Weights ./= maximum(Result.Weights)

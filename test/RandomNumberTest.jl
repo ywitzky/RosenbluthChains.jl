@@ -3,11 +3,14 @@ using Plots, StatsBase
 K =13.6
 x= 0:0.01:π
 
+
 d = RosenbluthChains.Cosine_BondAngle_Sampler(K, 30)
 
 
+Data = SimData("../tmp/", 1.0, 10, 8, 10, 1)
 
-rand_num =  [RosenbluthChains.give_rand(d) for _ in 1:500_000]
+rand_num =  [begin RosenbluthChains.give_rand(d, Data);  Data.rand_val; end for _ in 1:500_000]
+
 
 x=0:0.01:maximum(rand_num)
 hist = fit(Histogram, rand_num, x)

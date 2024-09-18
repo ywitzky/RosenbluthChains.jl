@@ -16,8 +16,11 @@ end
 
 function mainLoop( data::SimData, param::SimulationParameters, Measurement::AbstractMeasurement, perm::NoPERM)
 
+    time = [0.0, 0.0]
     for data.batch_id in 0:data.NumberOfBatches-1
-        @showprogress dt=1 desc="Computing batch $(data.batch_id+1)" for data.id_in_batch in 1:data.BatchSize
+        #@showprogress dt=1 desc="Computing batch $(data.batch_id+1)" 
+        println("$(data.batch_id)/$(data.NumberOfBatches-1): $(time[2])")
+            time = @timed  for data.id_in_batch in 1:data.BatchSize
             ResetSim(data, param)
             SetFirstThreeBeads(data, param)
             ComputeBeadsIteratively(data,param, perm)

@@ -75,22 +75,20 @@ function GetTrialBoltzmannWeight(data::SimData,param::AbstractTorsionAngleParam)
 function GetTrialBoltzmannWeight(data::SimData,param::AbstractSelfAvoidanceParameters) nothing end
 
 
-function ChooseTrialPosition(data::SimData,param::SimulationParameters)
+const small_diff = 0.999999
+
+
+function ChooseTrialPosition(data::SimData{T,I},param::SimulationParameters) where {T<:Real, I<:Integer}
     GetTrialBoltzmannWeight(data,param)
-    #data.btmp .=exp.(data.LogBoltzmannFaktor)
+
     cumsum!(data.tmp4, data.BoltzmannFaktor)
 
-   # data.btmp .=  (rand(eltype(data.tmp1))*data.tmp4[end]).<= data.tmp4
-    rnd_num=rand(eltype(data.tmp1))*data.tmp4[end]
+    rnd_num=rand(T)*data.tmp4[end] * small_diff ### small_diff numerically needed, doesnt find data.tid otherwise and breaks
     data.tid = findfirst(x->x>=rnd_num, data.tmp4) 
-    #data.LogRosenbluthWeight+= sum(data.LogBoltzmannFaktor)
     data.btmp .=exp.(data.LogBoltzmannFaktor)
     
-    data.RosenbluthWeight *= sum(   data.btmp)/data.NTrials
+    data.RosenbluthWeight *= sum(data.btmp)/data.NTrials
 
-
-    #println(data.LogBoltzmannFaktor)
-    #println(data.RosenbluthWeight, "  ",sum(   data.btmp)/data.NTrials )
     data.xyz[data.id] .= data.trial_positions[data.tid]
     data.x[data.id] = data.trial_positions[data.tid][1]
     data.y[data.id] = data.trial_positions[data.tid][2]

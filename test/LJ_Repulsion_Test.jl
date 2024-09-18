@@ -43,7 +43,7 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
     for (runID,N) in enumerate(N_Vals)
         Data = SimData("./tmp/", 1.0, N, N_Trial, N_Batch, 1)
         KP = SimulationParameters( FixedBondParameters(r), RandBondAngle(), RandTorsion(), LJ_Repulsion(ones(Int64,N),Dict(1 => r), 1.0 ))
-        Meas = RunSim(Data,KP, RG_Measurement(N_Batch, ones(N)));
+        Meas = RunSim(Data,KP, RosenbluthChains.RG_Measurement(Data.FolderPath, N_Batch));
 
         REE_avg, REE_err = ComputeSqrtMeanError(Meas.REEs, Meas.Weights)
 
@@ -51,7 +51,7 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
         Δμ_val[runID] = REE_err
     end
 
-    fit = curve_fit(REE_Fit, N_Vals, μ_val,1.0./Δμ_val, [r, 0.58])
+        fit = curve_fit(REE_Fit, N_Vals, μ_val,1.0./Δμ_val, [r, 0.58])
 
     if DOPLOTS
         fig = plot(N_Vals.-1, μ_val, yerr=Δμ_val, yaxis=:log, xaxis=:log, label= "data");

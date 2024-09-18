@@ -22,11 +22,12 @@ end
 
 function ComputeMeanError(data::Vector{R}, Weights::Vector{R}; NIntervals = 10) where {R<:Real}
     subinvertals  = collect(partition(1:length(data), floor(Int32,length(data)/Float32(NIntervals))))[1:end-1]
-    avg = sum(data.*Weights)/sum(Weights)
+    #avg = sum(data.*Weights)/sum(Weights)
 
     sub_Weights = [sum(Weights[interval]) for interval in subinvertals]
 
     avg_array = [ sum(data[interval].*Weights[interval])/sub_Weights[id]  for (id,interval) in enumerate(subinvertals)]
+    avg = sum(avg_array.*sub_Weights)/sum(sub_Weights)
 
     neff = sum(sub_Weights)^2/(sum(sub_Weights.^2))
 
@@ -37,11 +38,12 @@ end
 
 function ComputeSqrtMeanError(data::Vector{R}, Weights::Vector{R}; NIntervals = 10) where {R<:Real}
     subinvertals  = collect(partition(1:length(data), floor(Int32,length(data)/Float32(NIntervals))))[1:end-1]
-    avg = sqrt(sum(data.*Weights)/sum(Weights))
+    #avg = sqrt(sum(data.*Weights)/sum(Weights))
 
     sub_Weights = [sum(Weights[interval]) for interval in subinvertals]
 
     avg_array = [ sqrt(sum(data[interval].*Weights[interval])/sub_Weights[id])  for (id,interval) in enumerate(subinvertals)]
+    avg = sum(avg_array.*sub_Weights)/sum(sub_Weights)
 
     neff = sum(sub_Weights)^2/(sum(sub_Weights.^2))
 

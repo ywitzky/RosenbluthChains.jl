@@ -59,6 +59,8 @@ mutable struct SimData{T<:Real, I<:Integer}
     y_arr::Vector{T}
     z_arr::Vector{T}
     rand_val::T
+    tid_tmp::Union{Nothing, I}
+    mask::Vector{Bool}
 
 
     ### Constructor
@@ -66,6 +68,7 @@ mutable struct SimData{T<:Real, I<:Integer}
     new{T,I}(FolderPath, NBeads, NTrials, BatchSize, NumberOfBatches, 1,1, 1,-1,0,0, Vector{Vector3{T}}(NBeads) , zeros(T, NBeads), zeros(T, NBeads), zeros(T, NBeads),0.0,
     0.0,0.0,zeros(NTrials), zeros(NTrials),
     zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials),zeros(T, NTrials), Vector{Vector3{T}}(NTrials), 
-    Matrix3{T}(), Vector3{T}(0,0,0),Vector3{T}(0,0,0), Vector3{T}(0,0,0) , Vector3{T}(0,0,0), Vector3{T}(0,0,0), Vector3{T}(0,0,0) , zeros(T, NTrials), zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials) ,  zeros(I, NBeads) ,  zeros(I, NBeads) ,  zeros(I, NBeads),  zeros(I, NBeads) ,  zeros(T, NBeads),  zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials), zero(T)) #MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)))
+    Matrix3{T}(), Vector3{T}(0,0,0),Vector3{T}(0,0,0), Vector3{T}(0,0,0) , Vector3{T}(0,0,0), Vector3{T}(0,0,0), Vector3{T}(0,0,0) , zeros(T, NTrials), zeros(T, NTrials), zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials) ,  zeros(I, NBeads) ,  zeros(I, NBeads) ,  zeros(I, NBeads),  zeros(I, NBeads) ,  zeros(T, NBeads),  zeros(T, NTrials),  zeros(T, NTrials),  zeros(T, NTrials), zero(T), zero(I), Vector{Bool}(zeros(NTrials))
+    ) #MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)), MVector{NTrials, T}(zeros(T, NTrials)))
 
 end

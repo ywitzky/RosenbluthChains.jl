@@ -75,17 +75,21 @@ function GetTrialBoltzmannWeight(data::SimData,param::AbstractTorsionAngleParam)
 function GetTrialBoltzmannWeight(data::SimData,param::AbstractSelfAvoidanceParameters) nothing end
 
 
-const small_diff = 0.999999
-
+#const small_diff = 0.999999
 
 function ChooseTrialPosition(data::SimData{T,I},param::SimulationParameters) where {T<:Real, I<:Integer}
     GetTrialBoltzmannWeight(data,param)
 
+    ### avoid energies that are so small that they crash the floating point precision and turn to "nothing"
+    data.mask = isnothing.(data.BoltzmannFaktor)
+    data.BoltzmannFaktor[data.mask] .= zero(T)
+
     cumsum!(data.tmp4, data.BoltzmannFaktor)
 
-    rnd_num=rand(T)*data.tmp4[end] * small_diff ### small_diff numerically needed, doesnt find data.tid otherwise and breaks
+    rnd_num=rand(T)*data.tmp4[end]
     data.tid = findfirst(x->x>=rnd_num, data.tmp4) 
-    data.btmp .=exp.(data.LogBoltzmannFaktor)
+    #data.tid   = typeof(data.tid_tmp)==Nothing ? data.NTrials : data.tid_tmp
+    data.btmp .= exp.(data.LogBoltzmannFaktor)
     
     data.RosenbluthWeight *= sum(data.btmp)/data.NTrials
 

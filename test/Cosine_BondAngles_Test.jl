@@ -4,7 +4,7 @@ using Printf, Plots, StatsBase,Distributions
 
 N_Trial=8
 N_Test=40_000
-N= 300
+N= 100 #300
 N_cut=15
 φ=ones(N)*1#collect(range(0.01,π, N-2))
 r=3.8
@@ -41,10 +41,37 @@ end
 
 
 
-N_Manual=10_000_000
 
 
 @testset "Cosine_BondAngles & GaussianLp_Cosine_BondAngles " begin
+N_Manual=50_000_000
+
+
+BondAngles = Cosine_BondAngles(ones(N).*r)
+
+KP = SimulationParameters( FixedBondParameters(r), BondAngles, RandTorsion(), IdealChain())
+
+Data = SimData("./tmp/", 1.0, N, N_Trial*50_000 , 1, 1)
+
+Values  = [ begin RosenbluthChains.give_rand(BondAngles.AngleGenerator[1], Data); Data.rand_val end for _ in 1:N_Manual]
+
+avg = mean(cos.(Values))
+
+lp = -r/(log(avg))
+@test isapprox(r, lp, rtol=10^-3)
+
+Values  = vcat([ begin Data.id=i; RosenbluthChains.SetTrialBondAngle(Data,BondAngles);  Data.trial_angle end for i  in 1:N]...)
+
+println(size(Values))
+avg = mean(cos.(Values))
+
+lp = -r/(log(avg))
+@test isapprox(r, lp, rtol=10^-3)
+
+
+
+
+N_Manual = 10_000_000
 
 N_Rand = 10_000_000
 fac=1.05    
@@ -176,5 +203,5 @@ for (μ, σ) in [ (3.0, 0.1), (3.0, 0.2),(3.0, 1.0),(3.0, 1.5), (50.0, 1.0), (50
     @test μ<μ_est + 3.0*Δμ_est && μ>μ_est - 3.0*Δμ_est
     @test σ_th<σ_est + 3.0*Δσ_est && σ_th>σ_est - 3.0*Δσ_est
 end
-  
+
 end

@@ -72,7 +72,7 @@ end
 @inline function SetTrialBondAngle(data::SimData,param::Cosine_BondAngles)
     for i in 1:data.NTrials
         give_rand(param.AngleGenerator[data.id], data)
-        @inbounds data.trial_angle[i][:] .=  data.rand_val
+        data.trial_angle[i] =  data.rand_val
     end
     CompTrigonometricTrialBondAngles(data)
 end

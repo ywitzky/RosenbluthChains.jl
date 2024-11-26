@@ -1,4 +1,4 @@
-export Cosine_BondAngles, SetTrialBondAngle, GaussianLp_Cosine_BondAngles, GaussianInvLp_Cosine_BondAngles, GaussianK_Cosine_BondAngles
+export Cosine_BondAngles, SetTrialBondAngle, GaussianLp_Cosine_BondAngles, GaussianInvLp_Cosine_BondAngles, GaussianK_Cosine_BondAngles, κ_from_lp
 
 using  Distributions, Interpolations, Distributions, HCubature
 
@@ -201,7 +201,7 @@ end
 ### is not optimised for very stiff polymers, where some values will never occur
 @inline function SetTrialBondAngle(data::SimData,param::GaussianK_Cosine_BondAngles)
     for i in 1:data.NTrials
-        @inbounds data.trial_angle[i] = give_rand(param.Sampler, data)[2]
+        @inbounds data.trial_angle[i] = give_rand(param.Sampler)[2]
     end
     CompTrigonometricTrialBondAngles(data)
     nothing
@@ -297,14 +297,12 @@ mutable struct GaussianLp_Cosine_BondAngles{T<:Real} <: AbstractBondAngleParam
         K_val= κ_from_lp.(lp) ### compute κ for the lp [μ-w, μ+w]
         K_func = linear_interpolation(lp, K_val) ### construct spline interpolator for lp ⇒ κ
 
-        println(" $(lp_left), $(lp_right)")
+        #println(" $(lp_left), $(lp_right)")
 
         ### linear interpolation of derivative of κ(lp)
         lp_mean = (lp[2:end].+lp[1:end-1])./2.0
         κ_der = (K_func.(lp[2:end])-K_func.(lp[1:end-1]))./2.0
         κ_der_func = linear_interpolation(lp_mean, κ_der,extrapolation_bc=Line()) ### construct spline interpolator for derivative of lp(κ) ⇒ κ
-
-
 
         pers(κ, b) =  -b/log(coth(κ)-1.0/κ) ### lp(κ)
         P(κ,μ, σ, b=3.8) = Distributions.pdf.(Distributions.Normal(μ, σ),pers.(κ,b)) * (1.0/κ_der_func(pers(κ,b))) ### PDF of κ, not normalized

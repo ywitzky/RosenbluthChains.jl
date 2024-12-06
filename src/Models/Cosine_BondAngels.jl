@@ -201,7 +201,7 @@ end
 ### is not optimised for very stiff polymers, where some values will never occur
 @inline function SetTrialBondAngle(data::SimData,param::GaussianK_Cosine_BondAngles)
     for i in 1:data.NTrials
-        @inbounds data.trial_angle[i] = give_rand(param.Samplerss)[2]
+        @inbounds data.trial_angle[i] = give_rand(param.Samplers)[2]
     end
     CompTrigonometricTrialBondAngles(data)
     nothing

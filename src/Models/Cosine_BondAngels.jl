@@ -345,6 +345,10 @@ function InitSimParam(data::SimData,param::GaussianLp_Cosine_BondAngles )
     nothing
 end
 
+function InitSimParam(data::SimData,param::GaussianFixedK_Cosine_BondAngles ) 
+    nothing
+end
+
 ### is not optimised for very stiff polymers, where some values will never occur
 @inline function SetTrialBondAngle(data::SimData,param::Union{GaussianLp_Cosine_BondAngles,GaussianFixedK_Cosine_BondAngles})
     for i in 1:data.NTrials

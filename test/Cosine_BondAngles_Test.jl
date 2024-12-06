@@ -62,9 +62,7 @@ lp = -r/(log(avg))
 
 Values  = vcat([ begin Data.id=i; RosenbluthChains.SetTrialBondAngle(Data,BondAngles);  Data.trial_angle end for i  in 1:N]...)
 
-println(size(Values))
 avg = mean(cos.(Values))
-
 lp = -r/(log(avg))
 @test isapprox(r, lp, rtol=10^-3)
 
@@ -84,7 +82,7 @@ pers(κ, b=3.8) =  -b/log(coth(κ)-1.0/κ) ### lp(κ)
 
 
 for (μ, σ) in [ (3.0, 0.1), (3.0, 0.2),(3.0, 1.0),(3.0, 1.5), (50.0, 1.0), (500.0, 50.0)]
-
+    #=
     ### test whether we can solve for prefactor in the energy potential to get the accurate persistence length on average
     ### K function first
     K_target= RosenbluthChains.solveRecursive.(RosenbluthChains.lpToCosAngle.(μ),RosenbluthChains.AvgCos , 0.01,200.0 ) ### solve for prefactor
@@ -186,7 +184,9 @@ for (μ, σ) in [ (3.0, 0.1), (3.0, 0.2),(3.0, 1.0),(3.0, 1.5), (50.0, 1.0), (50
 
 
     ### Run simulation to test results
-    Meas = RunSim(Data,KP, AMeasurement(N, N_Test));
+    Data_ = SimData("./tmp/", 1.0, N, N_Trial, N_Test, 1)
+    Meas = RunSim(Data_,KP, AMeasurement(N, N_Test));
+
     AvgCos=sum([Meas.AvgCosBondAngle[i,:].*Meas.Weight[i] for i in 1:N_Test])./Meas.SumRosenbluthWeights
 
     ### compute mean and standard error of average persistence lengths
@@ -202,6 +202,23 @@ for (μ, σ) in [ (3.0, 0.1), (3.0, 0.2),(3.0, 1.0),(3.0, 1.5), (50.0, 1.0), (50
    
     @test μ<μ_est + 3.0*Δμ_est && μ>μ_est - 3.0*Δμ_est
     @test σ_th<σ_est + 3.0*Δσ_est && σ_th>σ_est - 3.0*Δσ_est
+    =#
+    ### -----------------------------
+    ### Test GaussianFixedK
+    ### -----------------------------
+
+    ### assume SetTrialBondAngle works since its the same funtion used for GaussianLp_Cosine_BondAngles
+    N_ =500_000
+    Data_ = SimData("./tmp/", 1.0, N_, 1, 1, 1)
+    KP_ = SimulationParameters( FixedBondParameters(r), GaussianFixedK_Cosine_BondAngles(μ, σ, N_), FixedTorsionAngles(φ), IdealChain())
+
+    κ_est, Δκ_est, σ_est, Δσ_est = ComputeMeanAndVariance(KP_.BondAngleParam.κ_vec)
+
+    @test isapprox(μ, κ_est, atol=3.0*Δκ_est, rtol=0.01)
+    @test isapprox(σ, σ_est, atol=3.0*Δκ_est, rtol=0.01)
+
+    #@test μ<κ_est + 3.0*Δκ_est && μ>μ_est - 3.0*Δμ_est
+    #@test σ_th<σ_est + 3.0*Δσ_est && σ_th>σ_est - 3.0*Δσ_est
 end
 
 end

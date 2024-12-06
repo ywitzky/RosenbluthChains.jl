@@ -1,4 +1,4 @@
-export Cosine_BondAngles, SetTrialBondAngle, GaussianLp_Cosine_BondAngles, GaussianInvLp_Cosine_BondAngles, GaussianK_Cosine_BondAngles, κ_from_lp
+export Cosine_BondAngles, SetTrialBondAngle, GaussianLp_Cosine_BondAngles, GaussianInvLp_Cosine_BondAngles, GaussianK_Cosine_BondAngles, GaussianFixedK_Cosine_BondAngles, κ_from_lp
 
 using  Distributions, Interpolations, Distributions, HCubature
 
@@ -201,7 +201,7 @@ end
 ### is not optimised for very stiff polymers, where some values will never occur
 @inline function SetTrialBondAngle(data::SimData,param::GaussianK_Cosine_BondAngles)
     for i in 1:data.NTrials
-        @inbounds data.trial_angle[i] = give_rand(param.Sampler)[2]
+        @inbounds data.trial_angle[i] = give_rand(param.Samplerss)[2]
     end
     CompTrigonometricTrialBondAngles(data)
     nothing
@@ -328,6 +328,17 @@ mutable struct GaussianLp_Cosine_BondAngles{T<:Real} <: AbstractBondAngleParam
     end
 end
 
+mutable struct GaussianFixedK_Cosine_BondAngles{T<:Real} <: AbstractBondAngleParam
+    μ::T
+    σ::T
+    κ_vec::Vector{T}
+    Sampler::Vector{Cosine_BondAngle_Sampler}
+    GaussianFixedK_Cosine_BondAngles(μ::T, σ::T,NBeads::I; NK=10, b=3.8) where {I<:Integer,T<:Real} = begin
+        P_κ= Distributions.Normal(μ, σ)
+        κ_vec = rand(P_κ, NBeads) 
+        new{T}(μ, σ,κ_vec, [Cosine_BondAngle_Sampler(κ) for κ in κ_vec])
+    end
+end
 
 ### Init function doesnt allow <cos> values larger 1000 and smaller than ≈1/3
 function InitSimParam(data::SimData,param::GaussianLp_Cosine_BondAngles ) 
@@ -335,7 +346,7 @@ function InitSimParam(data::SimData,param::GaussianLp_Cosine_BondAngles )
 end
 
 ### is not optimised for very stiff polymers, where some values will never occur
-@inline function SetTrialBondAngle(data::SimData,param::GaussianLp_Cosine_BondAngles)
+@inline function SetTrialBondAngle(data::SimData,param::Union{GaussianLp_Cosine_BondAngles,GaussianFixedK_Cosine_BondAngles})
     for i in 1:data.NTrials
         give_rand(param.Sampler[data.id-2], data) ### writes into data.rand_Val
         data.trial_angle[i] = data.rand_val

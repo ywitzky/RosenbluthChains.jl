@@ -90,7 +90,6 @@ function ChooseTrialPosition(data::SimData{T,I},param::SimulationParameters) whe
     data.tid = findfirst(x->x>=rnd_num, data.tmp4) 
     #data.tid   = typeof(data.tid_tmp)==Nothing ? data.NTrials : data.tid_tmp
     data.btmp .= exp.(data.LogBoltzmannFaktor)
-    
     data.RosenbluthWeight *= sum(data.btmp)/data.NTrials
 
     data.xyz[data.id] .= data.trial_positions[data.tid]

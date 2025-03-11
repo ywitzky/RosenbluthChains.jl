@@ -68,7 +68,7 @@ end
 
 function Base.iterate(A::LinkedList{I,T}) where {I<: Integer , T<:Any}
     A.current= A.start
-    if A.current == nothing
+    if isnothing(A.current)
         return nothing
     else
         val = A.current.value
@@ -78,7 +78,7 @@ function Base.iterate(A::LinkedList{I,T}) where {I<: Integer , T<:Any}
 end
 
 function Base.iterate(_::LinkedList, A::Union{LinkedList, Nothing})
-    if A.current == nothing
+    if isnothing(A.current)
         return nothing
     else
         val = A.current.value
@@ -100,12 +100,12 @@ function Base.iterate(A::LinkedList{I, LinkedList{I,T}}) where {I<: Integer , T<
 end
 
 function Base.iterate(A::LinkedList{I, LinkedList{I,T}}, _::T) where {I<: Integer , T<:Any}
-    if A.current == nothing ### check if outer list is done
+    if isnothing(A.current) ### check if outer list is done
         return nothing
     end
-    if A.current.value.current == nothing ### check if inner list is empty and choose the next one
+    if isnothing(A.current.value.current) ### check if inner list is empty and choose the next one
         A.current = A.current.next
-        if A.current ==nothing 
+        if isnothing(A.current) 
             return nothing
         else
             A.current.value.current = A.current.value.start ### start at the start of the inner list
@@ -191,13 +191,13 @@ end
 
 
 
-function Base.show(io::IO,  l::Link)  @printf(io, "%s, ",l.value); if l.next!=nothing show(io,  l.next) end end
+function Base.show(io::IO,  l::Link)  @printf(io, "%s, ",l.value); if !isnothing(l.next) show(io,  l.next) end end
 
-function Base.show(io::IO, X::MIME"text/plain", l::Link)  @printf(io, "%s, ",l.value); if l.next!=nothing show(io, X , l.next) end end
+function Base.show(io::IO, X::MIME"text/plain", l::Link)  @printf(io, "%s, ",l.value); if !isnothing(l.next) show(io, X , l.next) end end
 
 function Base.show(io::IO,  l::LinkedList) 
     @printf(io, "[" ) 
-    if l.start!= nothing
+    if !isnothing(l.start)
         show(io, l.start)
     end
     @printf(io, "]" ) 
@@ -205,7 +205,7 @@ end
 
 function Base.show(io::IO,  l::SortedList) 
     @printf(io, "[" ) 
-    if l.start!= nothing
+    if !isnothing(l.start)
         show(io, l.start)
     end
     @printf(io, "]" ) 

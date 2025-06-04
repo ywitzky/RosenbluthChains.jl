@@ -18,8 +18,8 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
     N=100
 
     ### Replicate cut off Lennard Jones potential with package intrinsics
-    Data = SimData("./tmp/", 1.0, N, N_Trial     , 1, 1)
-    KP = SimulationParameters( FixedBondParameters(r), RandBondAngle(), RandTorsion(), LJ_Repulsion(ones(Int64,N),Dict(1 => r), 3.0 ))
+    Data = SimData("$TestPath/tmp/", 1.0, N, N_Trial     , 1, 1)
+    KP = SimulationParameters( FixedBondParameters(r), RandBondAngle(), RandTorsion(), LJ_Repulsion(ones(Int64,N),Dict(Int64(1) => r), 3.0 ))
     Data.xyz .= [Vector3([0.0,0.0,0.0]) for _ in 1:N]
     x = collect(LinRange(0.8,1.6, N_Trial))*r
     Data.id=3
@@ -29,7 +29,7 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
     if DOPLOTS
         fig=plot(x, -Data.LogBoltzmannFaktor, label="Sim result")
         plot!(x, LJ.(x, r, 3.0), label="theory", linestyle=:dot, ylim=(-0.1, 40))
-        savefig(fig, "./tmp/LJ_Pot.pdf")
+        savefig(fig, "$TestPath/tmp/LJ_Pot.pdf")
     end
     @test Data.LogBoltzmannFaktor ≈  -LJ.(x, r, 3.0)
 
@@ -41,8 +41,8 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
     μ_val= zeros(length(N_Vals))
     Δμ_val= zeros(length(N_Vals))
     for (runID,N) in enumerate(N_Vals)
-        Data = SimData("./tmp/", 1.0, N, N_Trial, N_Batch, 1)
-        KP = SimulationParameters( FixedBondParameters(r), RandBondAngle(), RandTorsion(), LJ_Repulsion(ones(Int64,N),Dict(1 => r), 1.0 ))
+        Data = SimData("$TestPath/tmp/", 1.0, N, N_Trial, N_Batch, 1)
+        KP = SimulationParameters( FixedBondParameters(r), RandBondAngle(), RandTorsion(), LJ_Repulsion(ones(Int64,N),Dict(Int64(1) => r), 1.0 ))
         Meas = RunSim(Data,KP, RosenbluthChains.RG_Measurement(Data.FolderPath, N_Batch));
 
         REE_avg, REE_err = ComputeSqrtMeanError(Meas.REEs, Meas.Weights)
@@ -56,7 +56,7 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
     if DOPLOTS
         fig = plot(N_Vals.-1, μ_val, yerr=Δμ_val, yaxis=:log, xaxis=:log, label= "data");
         plot!(N_Vals, REE_Fit(N_Vals, fit.param), label="fit");
-        savefig(fig, "./tmp/Scaling.pdf");
+        savefig(fig, "$TestPath/tmp/Scaling.pdf");
     end
 
     (ΔN, Δν) = stderror(fit)

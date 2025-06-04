@@ -7,7 +7,7 @@ include("./Debye_Ashbaught_Hatch_Test.jl")
 
 NTests= 3 #8#67
 
-file = open("./Calvados2/Calvados2_05_24_20.csv", "r")
+file = open("$(PkgPath)/test/Calvados2/Calvados2_05_24_20.csv", "r")
 lines = readlines(file)
 close(file)
 NSeq=length(lines)
@@ -90,11 +90,11 @@ RG_Errs = zeros(length(Intervals))
 
         if DOPLOTS
             fig = Plots.plot(Intervals, RG_Errs, ylabel="estimated error")
-            Plots.savefig(fig, "./tmp/Calvados2_Errorblock_$(Names[i])_$N_Trial.pdf")
+            Plots.savefig(fig, "$TestPath/tmp/Calvados2_Errorblock_$(Names[i])_$N_Trial.pdf")
 
             b = 10.0 .^ (-8:0.1:0)
             fig = Plots.histogram(Result.Weights; bin=b, xscale=:log10, yscale=:identity,  xlim=extrema(b), ylabel="Weights")
-            Plots.savefig(fig, "./tmp/Calvados2_$(Names[i])_Weights_$N_Trial.pdf")
+            Plots.savefig(fig, "$TestPath/tmp/Calvados2_$(Names[i])_Weights_$N_Trial.pdf")
         end
         ### @TODO trim the tests to smaller size
     end
@@ -145,11 +145,11 @@ N_Batch = 40_000
 
         if DOPLOTS
             fig = Plots.plot(Intervals, RG_Errs, ylabel="estimated error")
-            Plots.savefig(fig, "./tmp/Calvados2_Errorblock_$(Names[i])_$N_Trial.pdf")
+            Plots.savefig(fig, "$TestPath/tmp/Calvados2_Errorblock_$(Names[i])_$N_Trial.pdf")
             bmax = maximum(log.(Result.Weights))
             b = 10.0 .^ (bmax-12:0.1:bmax)
             fig = Plots.histogram(Result.Weights; bin=b, xscale=:log10, yscale=:identity,  xlim=extrema(b), ylabel="Weights")
-            Plots.savefig(fig, "./tmp/PERM_Calvados2_$(Names[i])_Weights_$N_Trial.pdf")
+            Plots.savefig(fig, "$TestPath/tmp/PERM_Calvados2_$(Names[i])_Weights_$N_Trial.pdf")
         end
 
         ### @TODO trim the tests to smaller size

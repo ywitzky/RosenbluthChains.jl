@@ -1,6 +1,6 @@
 name = "RosenbluthChains"
 uuid = "44362eea-1525-49f6-9ebf-adad814e67cb"
-authors = ["Yannick Witzky <ywitzky@students.uni-mainz.de>"]
+authors = ["ywitzky <134135819+ywitzky@users.noreply.github.com>"]
 version = "0.1.0"
 
 [deps]

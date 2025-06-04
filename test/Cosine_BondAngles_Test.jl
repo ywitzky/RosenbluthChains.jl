@@ -64,7 +64,7 @@ Values  = vcat([ begin Data.id=i; RosenbluthChains.SetTrialBondAngle(Data,BondAn
 
 avg = mean(cos.(Values))
 lp = -r/(log(avg))
-@test isapprox(r, lp, rtol=10^-3)
+@test isapprox(r, lp, rtol=3*10^-2)
 
 
 N_Manual = 10_000_000

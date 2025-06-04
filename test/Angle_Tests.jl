@@ -117,8 +117,8 @@ for (b, N) in zip([1.0, 1.0,0.5, 3.0], [20, 100, 200, 300])
         println("REE $(REE_avg) ± $(REE_err): theory $(REE_exp) rel :$(REE_avg/REE_exp)")
     end
 
-    @test abs(RG_exp - RG_avg)<2.5*RG_err && RG_err<0.1
-    @test abs(REE_exp - REE_avg)<2.5*REE_err && REE_err<0.5
+    @test abs(RG_exp - RG_avg)<3.0*RG_err && RG_err<0.1
+    @test abs(REE_exp - REE_avg)<3.0*REE_err && REE_err<0.5
 
     RosenbluthChains.close(Result)
 

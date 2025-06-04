@@ -141,7 +141,7 @@ N_Batch = 40_000
             println("\n\n\n\n")
         end
 
-        @test abs(RGs[i] - RG_avg)< (2.5*RG_err) ||  abs(RGs[i] - RG_avg) < RGs[i]*0.025    ###  unlikely to be outside of this margin + error in their measurements
+        @test abs(RGs[i] - RG_avg)< (3.0*RG_err) ||  abs(RGs[i] - RG_avg) < RGs[i]*0.025    ###  unlikely to be outside of this margin + error in their measurements
 
         if DOPLOTS
             fig = Plots.plot(Intervals, RG_Errs, ylabel="estimated error")

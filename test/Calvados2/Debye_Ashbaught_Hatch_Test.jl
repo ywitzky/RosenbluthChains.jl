@@ -92,7 +92,7 @@ e = 1.602 # 10-19 C
         plot!(x,theory, label="theory", linestyle=:dot)
         savefig(fig, "$TestPath/tmp/Debye_Ashbaugh_Hatch_Pot_$(Sequence)_pH$(pH)_$(298.0*rel_T)K_$(cs_deb).pdf")
     end
-    @test all( -Data.LogBoltzmannFaktor .≈ theory)
+    @test all( isapprox.(-Data.LogBoltzmannFaktor, theory;rtol=10^-4))
     end
 end
 

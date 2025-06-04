@@ -114,7 +114,7 @@ end
         if DOPLOTS
             fig = Plots.bar(x, radii_hist, label="radii")
             Plots.plot!(x, theory_hist, label="theory")
-            Plots.savefig(fig, "$TestPath/test/tmp/HarmonicBondLength_$(k)_$(r0).pdf")
+            Plots.savefig(fig, "$TestPath/tmp/HarmonicBondLength_$(k)_$(r0).pdf")
         end
 
         @test ComputeKullbackLeiblerDivergence(radii_hist,theory_hist) <0.1

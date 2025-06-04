@@ -41,7 +41,7 @@ struct Cosine_BondAngle_Sampler{I<:Integer, T<: Real} <: Sampleable{Univariate,C
     end
 end
 
-function give_rand( s::Cosine_BondAngle_Sampler{I,T}, data::SimData{T,I}) where {I<:Integer, T<:Real}
+function give_rand( s::Cosine_BondAngle_Sampler{I,T}, data::SimData{T,I2}) where {I<:Integer,I2<:Integer, T<:Real}
     #s.work_array.=(rand(eltype(s.likelyhood))*s.likelyhood[end]).<= s.likelyhood
     bla = rand(T)*s.likelyhood[end]
     for i in axes(s.likelyhood,1)

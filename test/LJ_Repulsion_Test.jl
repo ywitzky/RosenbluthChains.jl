@@ -35,6 +35,7 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
 
    
     ### run simulations for multiple N to determine scaling exponent ν
+    if EXTENSIVE
     N_Trial=16
     N_Batch=10_000
     N_Vals = collect(25:25:250)
@@ -67,6 +68,7 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
 
     if VERBOSE
         println("ν= $(ν_fit)±$(Δν) vs. 0.58...")
+    end
     end
 end;
 

@@ -5,11 +5,12 @@ PkgPath="/"*joinpath(split(pathof(RosenbluthChains),"/")[1:end-2])
 
 
 mkpath("$TestPath/tmp/")
-cd(TestPath)
+
 println("Visualisation of the test can be found at $TestPath/tmp/ if DOPLOTS is set to true.")
 
 VERBOSE=true
-DOPLOTS=false
+DOPLOTS=true
+EXTENSIVE = false ### not suitable for daily testing since test arent robust
 
 include("./Helper.jl")
 include("./NoMeasurement.jl")

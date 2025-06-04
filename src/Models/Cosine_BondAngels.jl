@@ -23,7 +23,7 @@ end
 
 
 
-struct Cosine_BondAngle_Sampler{I<:Int, T<: Real} <: Sampleable{Univariate,Continuous}
+struct Cosine_BondAngle_Sampler{I<:Integer, T<: Real} <: Sampleable{Univariate,Continuous}
     K::T
     N::I
     borders::Vector{T}
@@ -98,7 +98,7 @@ end
 
 
 ### sampler for random number of θ of gaussian K
-#=struct Cosine_BondAngle_Prefactor_Sampler{I<:Int, T<: Real} <: Sampleable{Univariate,Continuous}
+#=struct Cosine_BondAngle_Prefactor_Sampler{I<:Integer, T<: Real} <: Sampleable{Univariate,Continuous}
     μ::T    ### normal distribution center 
     σ::T    ### normal distribution variance
     K_borders::Vector{T}### bins of the subdivisions

@@ -5,7 +5,7 @@ include("./Debye_Ashbaught_Hatch_Test.jl")
 
 ### data.txt was taken from https://github.com/KULL-Centre/papers/blob/main/2022/CG-cutoffs-Tesei-et-al/SC/05_24_20/1_init_proteinsRgs.pkl and contains the data used to create figure 7 in the original calvados2 paper
 
-NTests= 8#67
+NTests= 3 #8#67
 
 file = open("./Calvados2/Calvados2_05_24_20.csv", "r")
 lines = readlines(file)

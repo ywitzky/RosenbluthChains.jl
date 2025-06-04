@@ -69,7 +69,7 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
     N_Trial=32
     N_Batch=25_000 #100_000
     #N=100
-    N_Vals = collect(30:15:150)
+    N_Vals = collect(30:30:150)
     μ_val= zeros(length(N_Vals))
     Δμ_val= zeros(length(N_Vals))
     for (runID,N) in enumerate(N_Vals[1:end])

@@ -9,7 +9,7 @@ mkpath("$TestPath/tmp/")
 println("Visualisation of the test can be found at $TestPath/tmp/ if DOPLOTS is set to true.")
 
 VERBOSE=true
-DOPLOTS=true
+DOPLOTS=false
 EXTENSIVE = false ### not suitable for daily testing since test arent robust
 
 include("./Helper.jl")

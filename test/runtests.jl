@@ -1,7 +1,8 @@
 using Test, RosenbluthChains, Aqua, Scratch
 
 TestPath = Scratch.get_scratch!(RosenbluthChains, "test")
-PkgPath=pathof(RosenbluthChains)
+PkgPath="/"*joinpath(split(pathof(HPSAnalysis),"/")[1:end-2])
+
 
 mkpath("$TestPath/tmp/")
 cd(TestPath)

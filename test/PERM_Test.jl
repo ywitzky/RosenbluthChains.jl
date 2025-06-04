@@ -6,7 +6,7 @@ using Base.Iterators: partition
 @testset "PERM: ideal chain Scalings" begin
     for (b, N) in zip([1.0,0.5, 3.0], [100, 200, 300])
         N_Batch=50_000
-        Data = SimData("../tmp/", 1.0, N, 8, N_Batch, 1)
+        Data = SimData("$TestPath/tmp/", 1.0, N, 8, N_Batch, 1)
 
         Model = SimulationParameters( FixedBondParameters(b), RandBondAngle(), RandTorsion(), IdealChain())
 
@@ -37,7 +37,7 @@ using Base.Iterators: partition
         if DOPLOTS
             fig=Plots.bar(bins, REE_hist, label="Sim result", xlabel="REE", ylabel="P(REE)")
             plot!(bins,theory_hist, label="theory", linestyle=:dot)
-            savefig(fig, "./tmp/PERM_IdealChainGyrationradius_$(b)_$(N).pdf")
+            savefig(fig, "$TestPath/tmp/PERM_IdealChainGyrationradius_$(b)_$(N).pdf")
             @test ComputeKullbackLeiblerDivergence(REE_hist,theory_hist) <0.1
         end
 
@@ -73,7 +73,7 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
     μ_val= zeros(length(N_Vals))
     Δμ_val= zeros(length(N_Vals))
     for (runID,N) in enumerate(N_Vals[1:end])
-        Data = SimData("./tmp/", 1.0, N, N_Trial, N_Batch, 1)
+        Data = SimData("$TestPath/tmp/", 1.0, N, N_Trial, N_Batch, 1)
         KP = SimulationParameters( FixedBondParameters(r), RandBondAngle(), RandTorsion(), LJ_Repulsion(ones(Int64,N),Dict(1 => r), 1.0 ))
 
         val = 1.5
@@ -82,7 +82,7 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
 
         Result = RunSim(Data,KP, RosenbluthChains.RG_Mass_Measurement(Data.FolderPath, N_Batch, ones(N)), PERM);
 
-        PlotsWeightHistorgam(Result.Weights,"./tmp/PERM_LJ_Weights_$(N)",collect(-2:0.1:3.0))
+        PlotsWeightHistorgam(Result.Weights,"$TestPath/tmp/PERM_LJ_Weights_$(N)",collect(-2:0.1:3.0))
 
         if VERBOSE
             println("N $N")
@@ -105,7 +105,7 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
     if DOPLOTS
         fig = plot(N_Vals, μ_val,yerr=Δμ_val, yaxis=:log, xaxis=:log, label= "data");
         plot!(N_Vals, REE_Fit(N_Vals, fit.param), label="fit");
-        savefig(fig, "./tmp/PERM_LJ_Scaling.pdf");
+        savefig(fig, "$TestPath/tmp/PERM_LJ_Scaling.pdf");
     end
 
     (ΔN, Δν) = stderror(fit)

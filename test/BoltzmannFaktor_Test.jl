@@ -6,7 +6,7 @@ N= 100
 θ=collect(range(0.01,π/4, N-2))
 φ=collect(range(0.01,π, N-2))
 r=3.8
-Data = SimData("./tmp/", 1.0, N, N_Trial      , 1, 1)
+Data = SimData("$TestPath/tmp/", 1.0, N, N_Trial      , 1, 1)
 
 
 LogDist=[0.1, 0.2,0.3, 0.452, 0.5923, 0.534, 0.134, 0.234]

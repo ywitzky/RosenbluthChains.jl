@@ -22,7 +22,7 @@ function maxima_pos(K::T) where {T<:Real}
     return 2*atan(sqrt(sqrt(4.0*K^2+1)-2.0*K))
 end
 
-struct Cosine_BondAngle_Sampler{I<:Int, T<: Real} <: Sampleable{Univariate,Continuous}
+struct Cosine_BondAngle_Sampler{I<:Integer, T<: Real} <: Sampleable{Univariate,Continuous}
     K::T
     N::I
     borders::Vector{T}

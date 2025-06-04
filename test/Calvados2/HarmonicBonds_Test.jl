@@ -26,7 +26,7 @@ PolymerPerBatch=1
 NBatches = 1
 kbT = 1
 
-My_Simulation_Data = SimData("../tmp/", 1.0, NBeads, NTrial, PolymerPerBatch, NBatches)
+My_Simulation_Data = SimData("$TestPath/tmp/", 1.0, NBeads, NTrial, PolymerPerBatch, NBatches)
 
 bins = collect(0.0:0.1:10.0)
 x = (bins[2:end].+bins[1:end-1])./2.0
@@ -75,10 +75,12 @@ x = (bins[2:end].+bins[1:end-1])./2.0
         
         theory_hist = getTheoryhist(x, k, r0)
 
-        fig = Plots.bar(x, radii_hist, label="radii")
-        Plots.plot!(x, distances_hist, label="distances")
-        Plots.plot!(x, theory_hist, label="theory")
-        Plots.savefig(fig, "/uni-mainz.de/homes/ywitzky/Code_Projects/rosenbluthchains/test/tmp/HarmonicBondLength_Slow_$(k)_$(r0).pdf")
+        if DOPLOTS
+            fig = Plots.bar(x, radii_hist, label="radii")
+            Plots.plot!(x, distances_hist, label="distances")
+            Plots.plot!(x, theory_hist, label="theory")
+            Plots.savefig(fig, "$TestPath/tmp/HarmonicBondLength_Slow_$(k)_$(r0).pdf")
+        end
 
         @test ComputeKullbackLeiblerDivergence(radii_hist,theory_hist) <0.1
         @test ComputeKullbackLeiblerDivergence(distances_hist,theory_hist) <0.1
@@ -109,9 +111,11 @@ end
 
         theory_hist = getTheoryhist(x, k, r0)
 
-        fig = Plots.bar(x, radii_hist, label="radii")
-        Plots.plot!(x, theory_hist, label="theory")
-        Plots.savefig(fig, "/uni-mainz.de/homes/ywitzky/Code_Projects/rosenbluthchains/test/tmp/HarmonicBondLength_$(k)_$(r0).pdf")
+        if DOPLOTS
+            fig = Plots.bar(x, radii_hist, label="radii")
+            Plots.plot!(x, theory_hist, label="theory")
+            Plots.savefig(fig, "$TestPath/test/tmp/HarmonicBondLength_$(k)_$(r0).pdf")
+        end
 
         @test ComputeKullbackLeiblerDivergence(radii_hist,theory_hist) <0.1
         @test ComputeKullbackLeiblerDivergence(distances_hist,theory_hist) <0.1

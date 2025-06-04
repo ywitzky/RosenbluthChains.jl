@@ -7,7 +7,7 @@ x= 0:0.01:π
 d = RosenbluthChains.Cosine_BondAngle_Sampler(K, 30)
 
 
-Data = SimData("../tmp/", 1.0, 10, 8, 10, 1)
+Data = SimData("$TestPath/tmp/", 1.0, 10, 8, 10, 1)
 
 rand_num =  [begin RosenbluthChains.give_rand(d, Data);  Data.rand_val; end for _ in 1:500_000]
 
@@ -23,7 +23,7 @@ theory = RosenbluthChains.Cosine_BondAngle_func.(K, x)/(sum(RosenbluthChains.Cos
 if DOPLOTS
     fig= plot(x, theory, label="theory")
     plot!(x, hist, label="histogram")
-    Plots.savefig(fig, "./tmp/RandNum.png")
+    Plots.savefig(fig, "$TestPath/tmp/RandNum.png")
 end
 
 @test ComputeKullbackLeiblerDivergence(hist,theory) <0.1

@@ -9,7 +9,7 @@ N= 100
 φ=ones(N-2)*π/6
 φ[1:10] .= ones(10)*π/8
 r=3.8
-Data = SimData("./tmp/", 1.0, N, 1      , 1, 1)
+Data = SimData("$TestPath/tmp/", 1.0, N, 1      , 1, 1)
 KP = SimulationParameters( FixedBondParameters(r), FixedBondAngles(θ), FixedTorsionAngles(φ))
 Meas = RunSim(Data,KP, NoMeasurement());
 

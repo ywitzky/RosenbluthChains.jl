@@ -1,5 +1,7 @@
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 [![CI](https://github.com/ywitzky/RosenbluthChains.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/ywitzky/RosenbluthChains.jl/actions/workflows/CI.yml)
+[![codecov](https://codecov.io/gh/ywitzky/RosenbluthChains.jl/graph/badge.svg?token=HXCP3ERT95)](https://codecov.io/gh/ywitzky/RosenbluthChains.jl)
+
 # Rosenbluth Chains
 
 Implementation of the basic Rosenbluth-Rosenbluth method used to generate and measure ensembles of short polymers (<200 Monomers) according to bond, angle and torsion potentials.

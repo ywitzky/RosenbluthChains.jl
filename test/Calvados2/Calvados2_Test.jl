@@ -7,7 +7,7 @@ include("./Debye_Ashbaught_Hatch_Test.jl")
 
 NTests= 8#67
 
-file = open("./Calvados2/Calvados2_05_24_20.csv", "r")
+file = open("$(PkgPath)/test/Calvados2/Calvados2_05_24_20.csv", "r")
 lines = readlines(file)
 close(file)
 NSeq=length(lines)

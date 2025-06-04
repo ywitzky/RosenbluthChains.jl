@@ -1,6 +1,7 @@
 using Test, RosenbluthChains, Aqua, Scratch
 
 TestPath = Scratch.get_scratch!(RosenbluthChains, "test")
+PkgPath=pathof(RosenbluthChains)
 
 mkpath("$TestPath/tmp/")
 cd(TestPath)

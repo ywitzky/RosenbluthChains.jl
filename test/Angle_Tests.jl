@@ -30,9 +30,9 @@ using StatsBase,Plots
     angles_hist =angles_hist.weights ./ sum(angles_hist.weights*(θ[2]-θ[1]))
     θ = (θ[2:end].+θ[1:end-1])/2.0
 
+    theory = 0.5.*sin.(θ)
+    theory ./= (sum(theory)*(θ[2]-θ[1]))
     if DOPLOTS
-        theory = 0.5.*sin.(θ)
-        theory ./= (sum(theory)*(θ[2]-θ[1]))
         fig = Plots.bar(θ, angles_hist, label="rand bond angle")
         plot!(θ, theory, label="theory")
         savefig(fig, "$TestPath/tmp/RandomBondAngle.pdf");

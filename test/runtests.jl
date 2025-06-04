@@ -4,11 +4,10 @@ TestPath = Scratch.get_scratch!(RosenbluthChains, "test")
 
 mkpath("$TestPath/tmp/")
 cd(TestPath)
-println("Visualisation of the test can be found at $TestPath/tmp/ .")
-
+println("Visualisation of the test can be found at $TestPath/tmp/ if DOPLOTS is set to true.")
 
 VERBOSE=true
-DOPLOTS=true
+DOPLOTS=false
 
 include("./Helper.jl")
 include("./NoMeasurement.jl")

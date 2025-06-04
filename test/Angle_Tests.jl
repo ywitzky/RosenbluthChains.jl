@@ -11,7 +11,7 @@ using StatsBase,Plots
 
     x = collect(0:0.01:1)
 
-    Data = SimData("./tmp/", 1.0, N, 1      , 1, 1)
+    Data = SimData("$TestPath/tmp/", 1.0, N, 1      , 1, 1)
     KP = SimulationParameters( FixedBondParameters(1.0), RandBondAngle(), RandTorsion(), IdealChain())
     Result = RunSim(Data,KP, NoMeasurement());
 
@@ -35,7 +35,7 @@ using StatsBase,Plots
         theory ./= (sum(theory)*(θ[2]-θ[1]))
         fig = Plots.bar(θ, angles_hist, label="rand bond angle")
         plot!(θ, theory, label="theory")
-        savefig(fig, "./tmp/RandomBondAngle.pdf");
+        savefig(fig, "$TestPath/tmp/RandomBondAngle.pdf");
     end
 
     
@@ -57,10 +57,10 @@ using StatsBase,Plots
         fig = Plots.bar(η, torsion_hist, label="rand cross bond angle")
         plot!(η, torsion2_hist, label="torsion2")
         plot!(η, theory, label="theory")
-        savefig(fig, "./tmp/RandomTorsionAngle.pdf");
+        savefig(fig, "$TestPath/tmp/RandomTorsionAngle.pdf");
 
         fig = Plots.scatter(angles[1:10_000], torsion2[1:10_000], xlabel="polar angle", ylabel="azimuth angle\ntorsion angle", label="")
-        savefig(fig, "./tmp/RandomBondAngleTorsionAngleCorrelation.pdf");
+        savefig(fig, "$TestPath/tmp/RandomBondAngleTorsionAngleCorrelation.pdf");
     end
 
     @test ComputeKullbackLeiblerDivergence(torsion_hist,theory) <0.5
@@ -107,7 +107,7 @@ for (b, N) in zip([1.0, 1.0,0.5, 3.0], [20, 100, 200, 300])
     if DOPLOTS
         fig=plot(bins, REE_hist, label="Sim result", xlabel="REE", ylabel="P(REE)")
         plot!(bins,theory_hist, label="theory", linestyle=:dot)
-        savefig(fig, "./tmp/IdealChainGyrationradius_$(b)_$(N).pdf")
+        savefig(fig, "$TestPath/tmp/IdealChainGyrationradius_$(b)_$(N).pdf")
     end
 
     @test ComputeKullbackLeiblerDivergence(REE_hist,theory_hist) <0.1

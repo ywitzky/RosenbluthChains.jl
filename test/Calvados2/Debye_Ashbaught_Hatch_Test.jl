@@ -88,7 +88,7 @@ e = 1.602 # 10-19 C
     theory = (AshbaughHatch.(x, OneToSigma[Sequence[1]], OneToSigma[Sequence[3]],OneToLambda[Sequence[1]], OneToLambda[Sequence[3]], ϵ_ah_l, rc_ah, rel_T) .+ Debye.(x, D,OneToCharge[Sequence[1]]+1.0,OneToCharge[Sequence[3]]-1.0, ϵr_deb,rel_T, rc_deb))
 
     plot!(x,theory, label="theory", linestyle=:dot)
-    savefig(fig, "./tmp/Debye_Ashbaugh_Hatch_Pot_$(Sequence)_pH$(pH)_$(298.0*rel_T)K_$(cs_deb).pdf")
+    savefig(fig, "$TestPath/tmp/Debye_Ashbaugh_Hatch_Pot_$(Sequence)_pH$(pH)_$(298.0*rel_T)K_$(cs_deb).pdf")
     @test all( -Data.LogBoltzmannFaktor .≈ theory)
     end
 end

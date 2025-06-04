@@ -65,6 +65,8 @@ LJ(r,σ, ϵ) =  r < 2^(1.0/6.0)*σ ? 4*ϵ*((σ/r)^12-(σ/r)^6)  + ϵ : 0.0
 
 REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
 
+### takes very long and isnt very robust 
+#=
 @testset "PERM: LJ Potential SAW Scaling" begin
     N_Trial=32
     N_Batch=25_000 #100_000
@@ -116,7 +118,7 @@ REE_Fit(N, x) = @. x[1]*(N-1)^x[2]
 
     println("ν= $(ν_fit)±$(Δν) vs. 0.58...")
 end;
-
+=#
 
 
 

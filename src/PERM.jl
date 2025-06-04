@@ -1,7 +1,7 @@
 using ProgressMeter
 
 
-export Noperm, PermData
+export NoPERM, PermData
 
 
 ### oriented on THE paper of Peter Grassberger
@@ -103,7 +103,7 @@ end
 end
 
 @inline function enrich(data::SimData{T,I}, param::SimulationParameters, perm::PermData) where {T<:Real,I<:Integer}
-    #println("enrich")
+    #println("rm ")
     ### allocate more memory if its too little
     if perm.N_alternatives+perm.K>perm.N_alloc
         tmp = deepcopy(perm.alternatives_weights)

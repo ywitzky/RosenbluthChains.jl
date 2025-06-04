@@ -1,11 +1,24 @@
-using Test, RosenbluthChains
-mkpath("./tmp/")
+using Test, RosenbluthChains, Aqua, Scratch
+
+TestPath = Scratch.get_scratch!(RosenbluthChains, "test")
+
+mkpath("$TestPath/tmp/")
+cd(TestPath)
+println("Visualisation of the test can be found at $TestPath/tmp/ .")
+
 
 VERBOSE=true
 DOPLOTS=true
 
 include("./Helper.jl")
 include("./NoMeasurement.jl")
+
+@testset "Aqua" begin
+    Aqua.test_all(RosenbluthChains; deps_compat=(ignore=[:Test,:Mmap, :Printf, :Random, :Scratch], ), project_extras=true,piracies = false )
+    ### ignore standard libraries, not sure how to deal with them im PackageCompatUI/add compats manually
+    ### Test fails in project extras since they dont get excluded their normaly
+end
+
 
 @testset "All tests" begin
     include("./SpecificModels_Test.jl")
@@ -18,4 +31,3 @@ include("./NoMeasurement.jl")
     include("./PERM_Test.jl")
 end
 
-#rm("./tmp/")

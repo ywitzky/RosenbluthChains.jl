@@ -1,5 +1,6 @@
-export Cosine_BondAngles, SetTrialBondAngle, GaussianLp_Cosine_BondAngles, GaussianInvLp_Cosine_BondAngles, GaussianK_Cosine_BondAngles, GaussianFixedK_Cosine_BondAngles, κ_from_lp
+export Cosine_BondAngles, SetTrialBondAngle, GaussianLp_Cosine_BondAngles,  GaussianK_Cosine_BondAngles, GaussianFixedK_Cosine_BondAngles, κ_from_lp
 
+#GaussianInvLp_Cosine_BondAngles,
 using  Distributions, Interpolations, Distributions, HCubature
 
 

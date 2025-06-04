@@ -67,8 +67,6 @@ lp = -r/(log(avg))
 @test isapprox(r, lp, rtol=10^-3)
 
 
-
-
 N_Manual = 10_000_000
 
 N_Rand = 10_000_000
@@ -80,9 +78,8 @@ Normal(μ, σ,x) = 1/sqrt(2pi*σ^2) * exp(-(μ-x)^2/(2*σ^2))
 
 pers(κ, b=3.8) =  -b/log(coth(κ)-1.0/κ) ### lp(κ)
 
-
+#=
 for (μ, σ) in [ (3.0, 0.1), (3.0, 0.2),(3.0, 1.0),(3.0, 1.5), (50.0, 1.0), (500.0, 50.0)]
-    #=
     ### test whether we can solve for prefactor in the energy potential to get the accurate persistence length on average
     ### K function first
     K_target= RosenbluthChains.solveRecursive.(RosenbluthChains.lpToCosAngle.(μ),RosenbluthChains.AvgCos , 0.01,200.0 ) ### solve for prefactor
@@ -202,7 +199,7 @@ for (μ, σ) in [ (3.0, 0.1), (3.0, 0.2),(3.0, 1.0),(3.0, 1.5), (50.0, 1.0), (50
    
     @test μ<μ_est + 3.0*Δμ_est && μ>μ_est - 3.0*Δμ_est
     @test σ_th<σ_est + 3.0*Δσ_est && σ_th>σ_est - 3.0*Δσ_est
-    =#
+    
     ### -----------------------------
     ### Test GaussianFixedK
     ### -----------------------------
@@ -220,5 +217,6 @@ for (μ, σ) in [ (3.0, 0.1), (3.0, 0.2),(3.0, 1.0),(3.0, 1.5), (50.0, 1.0), (50
     #@test μ<κ_est + 3.0*Δκ_est && μ>μ_est - 3.0*Δμ_est
     #@test σ_th<σ_est + 3.0*Δσ_est && σ_th>σ_est - 3.0*Δσ_est
 end
-
+=#
 end
+

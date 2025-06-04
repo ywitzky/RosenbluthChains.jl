@@ -1,10 +1,14 @@
-export LJ_Repulsion, clear, LinkedList, add!
-
+export LJ_Repulsion, clear
 using Printf
 
 using LoopVectorization
 
 import Base.@kwdef, Base.show, Base.iterate
+
+#=
+CELL LIST seems to have too much overhead for short polymers; Long polymers dont work well with rosenbluth-rosenbluth method anyway.
+
+export LinkedList, add!
 
 abstract type AbstractSortedLinkedList end
 
@@ -346,7 +350,7 @@ end
     nothing
 end
 
-
+=#
 
 struct LJ_Repulsion{T<:Real, I<:Integer} <: AbstractSelfAvoidanceParameters
     ϵ::T #### saved as 4*epsilon
@@ -380,10 +384,12 @@ function InitSimParam(data::SimData,param::LJ_Repulsion )
     nothing
 end
 
+#=
 @inline function clear(CL::CellList{I}) where{I<:Integer} 
     CL.dict = Dict{Vector3{I}, Vector{I}}()
     nothing
 end
+=#
 
 @inline function clear(data::SimData,param::LJ_Repulsion)
     #clear(param.CL)

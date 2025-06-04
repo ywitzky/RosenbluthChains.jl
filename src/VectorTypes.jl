@@ -2,7 +2,7 @@ import Base: +,-,*,/,show, angle
 const Vector3{T} = MVector{3, T}
 const Matrix3{T} = MArray{Tuple{3,3},T}
 
-export norm, sqr_norm, angle, Vector3, Matrix3, ×, *, torsion
+export norm, sqr_norm, angle, ×, *, torsion , Vector3, Matrix3
 
 @inline sqr_norm(vec::Vector3{T})  where {T<:Real} = vec[1]*vec[1]+vec[2]*vec[2]+vec[3]*vec[3]
 
@@ -48,6 +48,10 @@ end
     ×( a,b,tmp)
     return tmp
 end
+
+function cos_angle(a::Vector3{T},b::Vector3{T}) where {T<:Number} 
+    return acos(sum(a.*b)/(norm(a)*norm(b)+10^-9)) ### removes 10^-10 accuracy problems for domaine of acos
+ end
 
 function angle(a::Vector3{T},b::Vector3{T}) where {T<:Number} 
    return acos(sum(a.*b)/(norm(a)*norm(b)+10^-9)) ### removes 10^-10 accuracy problems for domaine of acos

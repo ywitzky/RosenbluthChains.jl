@@ -1,4 +1,4 @@
-export SimulationParameters , InitMeasurement, MeasureAfterChainGrowthMeasureAfterBatch, SaveMeasurements, AbstractMeasurement, ChooseTrialPosition, clear
+export SimulationParameters , InitMeasurement, MeasureAfterChainGrowth, MeasureAfterBatch, SaveMeasurements, AbstractMeasurement, ChooseTrialPosition, clear, NoPERM
 
 abstract type AbstractPERMData end
 
